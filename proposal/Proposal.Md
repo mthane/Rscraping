@@ -7,3 +7,5 @@
 - add your ideas in the following paragraph "ideas"
 
 ## Ideas
+ - Web scraping on Reddit
+    - Can we predict cryptocurrencies? 
