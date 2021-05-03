@@ -9,3 +9,13 @@
 ## Ideas
  - Web scraping on Reddit
     - Can we predict cryptocurrencies? 
+
+
+
+##
+- Explainable predictive Model
+- Topic Modelling on Research papers
+- Predictive Model + visualization
+- Recommender systems
+- Treatment plan recommendation after diagnosis
+- Exchange rate prediction
