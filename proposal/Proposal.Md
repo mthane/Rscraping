@@ -8,9 +8,10 @@
 
 ## Ideas
  - Web scraping on Reddit
+
+    - Alternative visualization of Reddit posts (2D embedding)
+    - Sentiment Analysis
     - Can we predict cryptocurrencies? 
-
-
 
 ##
 - Explainable predictive Model
