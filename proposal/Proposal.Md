@@ -19,3 +19,6 @@
 - Recommender systems
 - Treatment plan recommendation after diagnosis
 - Exchange rate prediction
+
+##
+- Rise and Fall based on Stackoverflow data
