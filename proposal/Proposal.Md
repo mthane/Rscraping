@@ -24,6 +24,25 @@
 ##
 - Rise and Fall of Programming Languages based on Stackoverflow data
 
+## Research Questions
+- How does the popularity of programming languages change over time?
+  - How can we measure popularity of a programming language?
+  - Number of upvotes, comments
+  - Type of language
+
+- Is a certain post refering to a professional question?
+  - How can we classify those questions?
+  - Sentiment Analysis? 
+  - Question in the title
+
+- Is a certain post refering to an opinion?
+  - Opinion Mining, Sentiment Analysis
+- What programming languages are used for certain problems or programming paradigm?
+  - Topic modeling
+ 
+- Which programming languages are important for certain jobs?
+
+## Programming Challenges
 
 
 ## Few Dataset Links 
