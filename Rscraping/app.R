@@ -44,31 +44,31 @@ server <- function(input, output) {
 
     # FIRST SOLUTION
     #download json file
-    scrape_json1 <- observeEvent(input$scrape_json,{
-        download.file(paste("https://www.reddit.com/r/",
-                            input$reddit,
-                            "/new/.json?limit=",
-                            input$nposts,sep=""),
-                      "test.json")
-        
-        
-    })
-    
-    
-    data1 <- reactive({
-        jsonfile = fromJSON(file = "test.json")
-        ndocuments <- length(jsonfile$data$children)
-        dfs <- list()
-        df <- data.frame()
-        for (i in 1:ndocuments){
-            data <- jsonfile$data$children[i][[1]]$data
-            columns <- names(data)[1:10]
-            list_data <- data[columns]%>%as.list()
-            dfs[[i]]<-list_data%>%replace_na("")%>%as.data.frame()
-        }
-        rbindlist(dfs,fill=TRUE)
-    })
-    
+    # scrape_json1 <- observeEvent(input$scrape_json,{
+    #     download.file(paste("https://www.reddit.com/r/",
+    #                         input$reddit,
+    #                         "/new/.json?limit=",
+    #                         input$nposts,sep=""),
+    #                   "test.json")
+    #     
+    #     
+    # })
+    # 
+    # 
+    # data1 <- reactive({
+    #     jsonfile = fromJSON(file = "test.json")
+    #     ndocuments <- length(jsonfile$data$children)
+    #     dfs <- list()
+    #     df <- data.frame()
+    #     for (i in 1:ndocuments){
+    #         data <- jsonfile$data$children[i][[1]]$data
+    #         columns <- names(data)[1:10]
+    #         list_data <- data[columns]%>%as.list()
+    #         dfs[[i]]<-list_data%>%replace_na("")%>%as.data.frame()
+    #     }
+    #     rbindlist(dfs,fill=TRUE)
+    # })
+    # 
     
     # SECOND SOLUTION
     
