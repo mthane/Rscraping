@@ -1,0 +1,77 @@
+---
+title: "ProjectProposal"
+author: "Michael Thane"
+date: "11 5 2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+## Bullet points
+
+- this is a collaborative document
+- commit push and pull often, also when there is only small changes
+- add your ideas in the following paragraph "ideas"
+
+## Ideas
+- Web scraping on Reddit
+    - Alternative visualization of Reddit posts (2D embedding)
+    - Sentiment Analysis
+    - Explainable predictive Model
+    - Predictive Model + visualization
+- Rise and Fall of Programming Languages based on Stackoverflow data
+
+## Research Questions
+- How does the popularity of programming languages change over time?
+  - How can we measure popularity of a programming language?
+  - Number of upvotes, comments
+  - Type of language
+
+- Is a certain post refering to a professional question?
+  - How can we classify those questions?
+  - Sentiment Analysis? 
+  - Question in the title
+
+- Is a certain post refering to an opinion?
+  - Opinion Mining, Sentiment Analysis
+- What programming languages are used for certain problems or programming paradigm?
+  - Topic modeling
+ 
+- Which programming languages are important for certain jobs?
+
+## Reddit Scraping
+### Data set example
+
+
+```{r reddit, echo=FALSE,warning=FALSE,message=FALSE}
+library(dplyr)
+library(jsonlite)
+       fromJSON(url(paste("https://www.reddit.com/r/",
+                          "coding",
+                          "/new/.json?limit=",
+                          10,sep="")),flatten = T)$data$children%>%
+                      select("data.subreddit",
+                             "data.title",
+                             "data.author",
+                             "data.selftext",
+                             "data.name",
+                             "data.id",
+                             "data.domain",
+                             "data.url",
+                             "data.created",
+                             "data.created_utc",
+                             "data.upvote_ratio",
+                             "data.ups",
+                             "data.score",
+                             "data.num_comments"
+                             )%>%
+         knitr::kable()
+```
+
+## Programming Challenges
+
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

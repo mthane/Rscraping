@@ -99,7 +99,6 @@ server <- function(input, output) {
                "data.score",
                "data.num_comments"
                )
-        
     })
     
     
@@ -119,9 +118,7 @@ server <- function(input, output) {
                                                                    input$nposts,
                                                                    "&subreddit=",
                                                                    input$reddit,sep="")
-                                             print(pushshift_url)
                                              fromJSON(url(pushshift_url),flatten = T)
-                                             
                                          })
     
     
