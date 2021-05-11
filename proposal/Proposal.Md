@@ -65,4 +65,6 @@
 https://github.com/awesomedata/awesome-public-datasets
 
 https://www.who.int/data/collections
+https://stackoverflow.blog/2014/01/23/stack-exchange-cc-data-now-hosted-by-the-internet-archive/
+https://data.stackexchange.com/stackoverflow/queries
 
