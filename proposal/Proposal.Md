@@ -44,19 +44,19 @@
 
 ## Reddit Scraping
 ### Popular coding subreddits
-r/WebDev
-r/Frontend
-r/CSS
-r/AskProgramming
-r/LearnProgramming
-r/Coding
-r/JavaScript
-r/LearnJavaScript
-r/PHP
-r/Rails
-r/LearnPython
-r/BadCode
-r/CodingHelp
+- r/WebDev
+- r/Frontend
+- r/CSS
+- r/AskProgramming
+- r/LearnProgramming
+- r/Coding
+- r/JavaScript
+- r/LearnJavaScript
+- r/PHP
+- r/Rails
+- r/LearnPython
+- r/BadCode
+- r/CodingHelp
 
 ## Programming Challenges
 
