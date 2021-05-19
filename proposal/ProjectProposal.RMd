@@ -12,20 +12,27 @@ library(dplyr)
 library(jsonlite)
 ```
 ## Background and Motivation
-Programming languages are always being created, are developing and are rising and falling in popularity. 
 
-Reddit is a popular forum especially among young people. It has a international large community and a lot of programming related content. We want to use data from the Reddit forum in order to better understand the popularity of Programming languages among Reddit users.
 
-Additionally we want to compare it to data from the Stackoverflow forum. The Stackoverflow forum is a forum that is more focussing on solving programming related Problems. 
+
+Reddit is known as the "Front Page of the Internet" and is a popular forum especially among young people where users can post anything and everything. Unlike other social media platforms the majority of the Reddit users remain anonymous. We believe that the anonymity of the forum allows us to train and test NLP models.
+It has a large international community and a lot of programming related content. We want to use data from the Reddit forum in order to better understand the popularity of Programming languages among Reddit users.
+
+Additionally we want to compare it to data from the Stackoverflow forum. The Stackoverflow forum is a forum that is more focussing on solving programming related Problems.
 
 We want to evaluate what programming languages are being discussed in both forums and compare them. For reaching our aim we want to use Visualization methods Machine Learning methods based on text data but also use the quantification that we get from the upvotes and number of comments.
 
 ## Research Questions
-- How can we decide which topic/language a certain post is about?
-- How can we measure popularity of a programming language?
-- How does the popularity of programming languages change over time?
-- Is a certain post refering to a professional question or an opinion?
 
+- Can we decide which topic/language a certain post is about?
+- How do number of upvotes, comments and number of posts correlate to popularity?
+- How does the popularity of programming languages change over time?
+- Can we predict the popularity of programming languages in the future?
+- How do the two platforms compare based on programming languages?
+
+
+## Design overview
+For the Reddit posts the plan is to use an API from Reddit to get data sets for a certain time range and a number of specific Subreddits. The choice of the Subreddits is crucial for the quality and expressiveness of our data and will be based on some prior research on interesting Subreddits regarding programming. From this data we can then get the Subreddit, title, text, upvotes and various metadata.
 
 ### Data set example
 
@@ -56,34 +63,64 @@ We want to evaluate what programming languages are being discussed in both forum
          kable_paper("hover", full_width = F)
 ```
 
-## Design overview
-For the Reddit posts the plan is to use an API from Reddit to get data sets for a certain time range and a number of specific subreddits. The choice of the subreddits is crucial for the quality and expressiveness of our data and will be based on some prior research on interesting subreddits regrading programming. From this data we can then get the subreddit, title, text, upvotes and various metadata. 
 
-### Shiny application
-- Using shiny as a tool for interactive exploration of the data set
-  - Sliders for selecting a time range of interest
-  - Checkboxes or Dropdown menus to select different programming languages
-- Shiny offers the possibility of refreshing the data sets on a web page making it possible to get new insights everyday
+### Data Preprocessing
+- Fetching the Reddit data from the pushshift API 
+- Finding relevant subreddits
+- Selecting the features that should be used 
+- Textpreprocessing:
+  - Removing punctuation and stopwords
+  - Stemming
+  - Vectorization
+
 
 ### Explorative Data Analyis and Visualization
-- Explorative data analysis using boxplots, histograms, scatterplot etc. on upvotes and number of comments and other statistics
+- Exploratory data analysis using box plots, histograms, scatter plot etc. on upvotes and number of comments and number of posts for every programming language
 - Showing the trend with a line plot and confidence interval
 - Using 2D embedding of the posts and using a scatterplot to show similarity 
 - Comparing stackoverflow and Reddit in the plots
 
 ### Classification of topics
-- using a ground truth to predict what programming language a post is related to
 - Using topic modeling using LDA - Latent Dirichlet Allocation
 - Using decision trees or ensemble methods
 - Using sentiment analysis and clustering to evaluate if a post is a professional question or an opinion
 
+### Prediction of future popularity
+- ARIMA
+- SARIMA
+- Exponential Smoothing
+- Random Forest (based on CART)
 
-## Time plan including distribution of responsibilities and workload among team members written as weekly deadlines
 
-Data processing - Reddit | Michael & Sharanya
-Data processing - Stackoverflow
-Visualization and EDA | Michael & Indranil & Sharanya
-Topic modeling | Sharanya & Indrani
-Classification | 
 
-Shiny application - Everyone
+### Shiny application
+- Using shiny as a tool for interactive exploration of the data set
+  - Sliders for selecting a time range of interest
+  - Checkboxes or Dropdown menus to select different programming languages
+- Bonus: Shiny offers the opportunity of refreshing the data sets on a web page making it possible to get new insights everyday
+
+### Time plan including distribution of responsibilities and workload among team members written as weekly deadlines
+
+- Data Collection Reddit | Michael & Sharanya 
+- Data Collection Stack Overflow | Indrani & Indranil
+- Preprocessing Reddit | Michael & Sharanya 
+- Preprocessing Stack Overflow | Indrani & Indranil
+- Exploratory Data Analysis and Visualization Reddit Data | Michael & Indranil
+- Exploratory Data Analysis and Visualization Stack Overflow  | Michael & Indranil
+- Topic Modelling and Clustering Reddit | Indrani| Sharanya
+- Topic Modelling and Clustering Stack Overflow | Indrani| Sharanya
+- Implementing decision trees on Reddit | 
+- Implementing decision trees on Stack Overflow |
+- Implementing ensemble methods on Reddit |
+- Implementing ensemble methods on Stack Overflow |
+- Visualization of results of Reddit | 
+- Visualization of results of Stack Overflow |
+- Creating Shiny Application | Indrani | Indranil | Michael | Sharanya
+- Documentation, Bonus Task , Preparing presentation | Indrani | Indranil | Michael | Sharanya
+
+24-30 May
+31-6 June
+7- 13 June
+14- 20 June
+21-27 June
+28-6 July
