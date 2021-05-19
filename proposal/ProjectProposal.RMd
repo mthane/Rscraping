@@ -10,20 +10,6 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 
-## Bullet points
-
-- this is a collaborative document
-- commit push and pull often, also when there is only small changes
-- add your ideas in the following paragraph "ideas"
-
-## Ideas
-- Web scraping on Reddit
-    - Alternative visualization of Reddit posts (2D embedding)
-    - Sentiment Analysis
-    - Explainable predictive Model
-    - Predictive Model + visualization
-- Rise and Fall of Programming Languages based on Stackoverflow data
-
 ## Research Questions
 - How does the popularity of programming languages change over time?
   - How can we measure popularity of a programming language?
@@ -71,7 +57,31 @@ library(jsonlite)
          knitr::kable()
 ```
 
-## Programming Challenges
+## Design overview
+
+### How can we measure popularity of a programming language?
+- upvotes and number of columns
+
+### How can we tell what language a post is referring to?
+- using a ground truth to predict what programming language a post is related to
+- Using topic modeling using LDA - Latent Dirichlet Allocation
+- Using decision trees or ensemble methods
+
+### Visualization
+- Showing the trend with a line plot and confidence interval
+- Using 2D embedding of the posts and using a scatterplot to show similarity 
+- Comparing stackoverflow and Reddit in the plots
+
+### Is a certain post referring to a professional question or an opinion?
+- Using sentiment analysis and clustering 
 
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+## Time plan including distribution of responsibilities and workload among team members written as weekly deadlines
+
+Data processing - Reddit | Michael & Sharanya
+Data processing - Stackoverflow
+Visualization and EDA | Michael & Indranil & Sharanya
+Topic modeling | Sharanya & Indrani
+Classification | 
+
+Shiny application - Everyone
