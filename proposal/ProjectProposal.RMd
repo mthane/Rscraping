@@ -1,5 +1,5 @@
 ---
-title: "ProjectProposal"
+title: "Trends in Programming Language Popularity"
 author: "Michael Thane"
 date: "11 5 2021"
 output: html_document
@@ -8,25 +8,20 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+## Background and Motivation
+Programming languages are always being created, are developing and are rising and falling in popularity. 
 
+Reddit is a popular forum especially among young people. It has a international large community and a lot of programming related content. We want to use data from the Reddit forum in order to better understand the popularity of Programming languages among Reddit users.
+
+Additionally we want to compare it to data from the Stackoverflow forum. The Stackoverflow forum is a forum that is more focussing on solving programming related Problems. 
+
+We want to evaluate what programming languages are being discussed in both forums and compare them. For reaching our aim we want to use Visualization methods Machine Learning methods based on text data but also use the quantification that we get from the upvotes and number of comments.
 
 ## Research Questions
+
 - How does the popularity of programming languages change over time?
-  - How can we measure popularity of a programming language?
-  - Number of upvotes, comments
-  - Type of language
-
-- Is a certain post refering to a professional question?
-  - How can we classify those questions?
-  - Sentiment Analysis? 
-  - Question in the title
-
-- Is a certain post refering to an opinion?
-  - Opinion Mining, Sentiment Analysis
-- What programming languages are used for certain problems or programming paradigm?
-  - Topic modeling
- 
-- Which programming languages are important for certain jobs?
+- How can we measure popularity of a programming language?
+- Is a certain post refering to a professional question or an opinion?
 
 ## Reddit Scraping
 ### Data set example
@@ -54,26 +49,23 @@ library(jsonlite)
                              "data.score",
                              "data.num_comments"
                              )%>%
+         head(3)%>%
          knitr::kable()
 ```
 
 ## Design overview
 
-### How can we measure popularity of a programming language?
-- upvotes and number of columns
-
-### How can we tell what language a post is referring to?
-- using a ground truth to predict what programming language a post is related to
-- Using topic modeling using LDA - Latent Dirichlet Allocation
-- Using decision trees or ensemble methods
-
-### Visualization
+### Explorative Data Analyis and Visualization
+- Explorative data analysis using boxplots, histograms, scatterplot etc. on upvotes and number of comments and other statistics
 - Showing the trend with a line plot and confidence interval
 - Using 2D embedding of the posts and using a scatterplot to show similarity 
 - Comparing stackoverflow and Reddit in the plots
 
-### Is a certain post referring to a professional question or an opinion?
-- Using sentiment analysis and clustering 
+### Classification of topics
+- using a ground truth to predict what programming language a post is related to
+- Using topic modeling using LDA - Latent Dirichlet Allocation
+- Using decision trees or ensemble methods
+- Using sentiment analysis and clustering to evaluate if a post is a professional question or an opinion
 
 
 ## Time plan including distribution of responsibilities and workload among team members written as weekly deadlines
