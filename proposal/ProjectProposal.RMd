@@ -77,6 +77,38 @@ For the Reddit posts the plan is to use an API from Reddit to get data sets for 
   - Checkboxes or Dropdown menus to select different programming languages
 - Bonus: Shiny offers the opportunity of refreshing the data sets on a web page making it possible to get new insights everyday
 
+# Datasets
+1. Stackoverflow Data dump : https://archive.org/download/stackexchange
+2. Reddit Data : 
+```{r reddit, echo=FALSE,warning=FALSE,message=FALSE}
+
+
+       fromJSON(url(paste("https://www.reddit.com/r/",
+                          "coding",
+                          "/new/.json?limit=",
+                          10,sep="")),flatten = T)$data$children%>%
+                      select("data.subreddit",
+                             "data.title",
+                             #"data.author",
+                             #"data.selftext",
+                             #"data.name",
+                             "data.id",
+                             #"data.domain",
+                             #"data.url",
+                             "data.created",
+                             "data.created_utc",
+                             "data.upvote_ratio",
+                             "data.ups",
+                             "data.score",
+                             "data.num_comments"
+                             )%>%
+         head(3)%>%
+         knitr::kable()%>%
+         kable_paper("hover", full_width = F)
+```
+
+
+
 ### Time plan including distribution of responsibilities and workload among team members written as weekly deadlines
 
 - Data Collection Reddit | Michael & Sharanya 
