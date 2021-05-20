@@ -1,8 +1,9 @@
 ---
-title: "Trends in Programming Language Popularity"
-author: "Michael Thane"
-date: "11 5 2021"
-output: html_document
+title: "Project Proposal : Trends in usage of Programming Language"
+author: "Indrani Sarkar, Indranil Maji, Michael Thane, Sharanya Mohan"
+output:
+  html_document: default
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -11,16 +12,22 @@ library(kableExtra)
 library(dplyr)
 library(jsonlite)
 ```
-## Background and Motivation
+
+# Background and Motivation
 
 
 
-Reddit is known as the "Front Page of the Internet" and is a popular forum especially among young people where users can post anything and everything. Unlike other social media platforms the majority of the Reddit users remain anonymous. We believe that the anonymity of the forum allows us to train and test NLP models.
-It has a large international community and a lot of programming related content. We want to use data from the Reddit forum in order to better understand the popularity of Programming languages among Reddit users.
+Reddit and Stackoverflow are two community based websites which are used heavily by people all across the world. Reddit is known as the “Front Page of the Internet” and is a popular forum especially among young people where users can post anything and everything.It has a large international community and a lot of programming related content. Reddit is a place for all possible topics of discussion whereas Stack Overflow is centered around programming languages and ideas and discussions surrounding it. Stack overflow is more of a question answer based system. Reddit is mostly a post and comments based system. Both of these websites have an upvote/downvote system and are great resources for coders and programmers around the globe. 
 
-Additionally we want to compare it to data from the Stackoverflow forum. The Stackoverflow forum is a forum that is more focussing on solving programming related Problems.
+We want to use data from the Reddit forum in order to better understand the popularity of Programming languages among Reddit users.Additionally, we want to compare it to data from the Stack Overflow forum. We want to evaluate what programming languages are being discussed in both forums and compare how their usage or popularity has changed over time. For reaching our aim we want to use Visualization and Machine Learning methods based on text data but also use the quantification that we get from the upvotes and number of comments on both the platforms.
 
-We want to evaluate what programming languages are being discussed in both forums and compare them. For reaching our aim we want to use Visualization methods Machine Learning methods based on text data but also use the quantification that we get from the upvotes and number of comments.
+Since both platforms are very popular and most sought after and contain a lot of discussion related to programming, it would be good to study and analyse the trend of how users have been using some of the topmost programming languages. The change of trend would help us in understanding  how the popularity of programming language has changed over time and also we could then predict which programming language would be kind of centre of discussion or most queried of in these two platforms. 
+
+
+# Project Objective 
+
+The objective of our project is to find a correlation between the different parameters of  questions or posts in these platforms and try to calculate how the popularity of programming language has changed over time. And then further we would like to predict what would be the trends of these programming languages in near future. We could use this information to also relate the kinds of problems or topics which are most related with this programming languages and analyze the kind of topics or solutions most used for certain kinds of problems. We would try to answer the following kinds of research questions :
+
 
 ## Research Questions
 
@@ -31,37 +38,8 @@ We want to evaluate what programming languages are being discussed in both forum
 - How do the two platforms compare based on programming languages?
 
 
-## Design overview
+# Design overview
 For the Reddit posts the plan is to use an API from Reddit to get data sets for a certain time range and a number of specific Subreddits. The choice of the Subreddits is crucial for the quality and expressiveness of our data and will be based on some prior research on interesting Subreddits regarding programming. From this data we can then get the Subreddit, title, text, upvotes and various metadata.
-
-### Data set example
-
-```{r reddit, echo=FALSE,warning=FALSE,message=FALSE}
-
-
-       fromJSON(url(paste("https://www.reddit.com/r/",
-                          "coding",
-                          "/new/.json?limit=",
-                          10,sep="")),flatten = T)$data$children%>%
-                      select("data.subreddit",
-                             "data.title",
-                             #"data.author",
-                             #"data.selftext",
-                             #"data.name",
-                             "data.id",
-                             #"data.domain",
-                             #"data.url",
-                             "data.created",
-                             "data.created_utc",
-                             "data.upvote_ratio",
-                             "data.ups",
-                             "data.score",
-                             "data.num_comments"
-                             )%>%
-         head(3)%>%
-         knitr::kable()%>%
-         kable_paper("hover", full_width = F)
-```
 
 
 ### Data Preprocessing
