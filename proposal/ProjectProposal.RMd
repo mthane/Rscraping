@@ -1,7 +1,7 @@
 ---
-title: "Trends in Programming Language Popularity"
-author: "Indrani Sarkar ,Indranil Maji, Michael Thane, Sharanya Hunasamaranahalli Thotadarya"
-date: "20.5.2021"
+title: "Project Proposal for Trends in Programming Language Popularity"
+author: "by Indrani Sarkar ,Indranil Maji, Michael Thane, Sharanya Hunasamaranahalli Thotadarya"
+date: "20th May,2021"
 
 output:
   rmarkdown::html_document:
@@ -109,16 +109,18 @@ For the Reddit posts the plan is to use an API from Reddit to get data sets for 
 :::: column
 
 ### Data Preprocessing
-- Stackoverflow Data Dumps : https://archive.org/download/stackexchange
-- Using the different stackoverflow dumps  ( posts, tags, users, votes,   posthistory,comments etc.)
-- Merging this separate data dumps to get relevant data and make it      comparable with Reddit data before using it for our analysis and       visualisation
-- Fetching the Reddit data from the pushshift API 
-- Finding relevant subreddits
-- Selecting the features that should be used 
-- Textpreprocessing:
-  - Removing punctuation and stopwords
-  - Stemming
-  - Vectorization
+- Stackoverflow Data Dumps : 
+  https://archive.org/download/stackexchange
+  - Using the different stackoverflow dumps  ( posts, tags, users,         votes,posthistory,comments etc.)
+  - Merging this separate data dumps to get relevant data and make it      comparable with Reddit data before using it for our analysis and       visualisation
+- Reddit Data :
+  - Fetching the Reddit data from the pushshift API 
+  - Finding relevant subreddits
+  - Selecting the features that should be used 
+  - Textpreprocessing:
+    - Removing punctuation and stopwords
+    - Stemming
+    - Vectorization
 
 
 ### Explorative Data Analyis and Visualization
