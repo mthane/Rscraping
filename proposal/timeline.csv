@@ -1,0 +1,21 @@
+,task,start,end,owner,color
+1,"Data Collection,Data Preprocessing Reddit",2021-05-24,2021-05-30,Michael,#ffea96
+2,"Data Collection,Data Preprocessing Reddit",2021-05-24,2021-05-30,Sharanya,#ffea96
+3,"Data Collection,Data Preprocessing Stack Overflow",2021-05-24,2021-05-30,Indrani,#ffea96
+4,"Data Collection,Data Preprocessing Stack Overflow",2021-05-24,2021-05-30,Indranil,#ffea96
+5,EDA & Visualization Reddit & Stack Over flow,2021-05-31,2021-06-06,Michael,#ffea96
+6,EDA & Visualization Reddit & Stack Over flow,2021-05-31,2021-06-06,Indranil,#ffea96
+7,Topic Modelling Reddit & Stack Overflow,2021-06-07,2021-06-13,Indrani,#4ed4b5
+8,Topic Modelling Reddit & Stack Overflow,2021-06-07,2021-06-13,Sharanya,#4ed4b5
+9,Forecasting Reddit,2021-06-14,2021-06-20,Indrani,#faa5a5
+10,Forecasting  Reddit,2021-06-14,2021-06-20,Indranil,#faa5a5
+11,Forecasting  Stack Overflow,2021-06-14,2021-06-20,Michael,#faa5a5
+12,Forecasting  Stack Overflow,2021-06-14,2021-06-20,Sharanya,#faa5a5
+13,Shiny App,2021-06-21,2021-06-27,Indrani,#faa5a5
+14,Shiny App,2021-06-21,2021-06-27,Indranil,#faa5a5
+15,Shiny App,2021-06-21,2021-06-27,Michael,#faa5a5
+16,Shiny App,2021-06-21,2021-06-27,Sharanya,#faa5a5
+17,"Documentation, Bonus Tasks, Presentation Preparation",2021-06-28,2021-07-06,Indrani,#faa5a5
+18,"Documentation, Bonus Tasks, Presentation Preparation",2021-06-28,2021-07-06,Indranil,#faa5a5
+19,"Documentation, Bonus Tasks, Presentation Preparation",2021-06-28,2021-07-06,Michael,#faa5a5
+20,"Documentation, Bonus Tasks, Presentation Preparation",2021-06-28,2021-07-06,Sharanya,#faa5a5

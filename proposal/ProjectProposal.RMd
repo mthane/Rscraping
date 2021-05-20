@@ -1,8 +1,11 @@
 ---
-title: "Project Proposal : Trends in usage of Programming Language"
-author: "Indrani Sarkar, Indranil Maji, Michael Thane, Sharanya Mohan"
+title: "Trends in Programming Language Popularity"
+author: "Michael Thane"
+date: "11 5 2021"
+
 output:
-  html_document: default
+  rmarkdown::html_document:
+    theme: journal
   pdf_document: default
 ---
 
@@ -11,25 +14,56 @@ knitr::opts_chunk$set(echo = TRUE)
 library(kableExtra)
 library(dplyr)
 library(jsonlite)
+library(wordcloud) 
+library(tm)
+library(vistime)
+library(stringr)
 ```
 
-# Background and Motivation
+```{r reddit, echo=FALSE,warning=FALSE,message=FALSE}
+
+       reddit_data <- fromJSON(url(paste("https://www.reddit.com/r/",
+                          "coding",
+                          "/new/.json?limit=",
+                          100,sep="")),flatten = T)$data$children%>%
+                      select("data.subreddit",
+                             "data.title",
+                             #"data.author",
+                             #"data.selftext",
+                             #"data.name",
+                             "data.id",
+                             #"data.domain",
+                             #"data.url",
+                             "data.created",
+                             "data.created_utc",
+                             "data.upvote_ratio",
+                             "data.ups",
+                             "data.score",
+                             "data.num_comments"
+                             )
+
+
+      
+```
 
 
 
-Reddit and Stackoverflow are two community based websites which are used heavily by people all across the world. Reddit is known as the “Front Page of the Internet” and is a popular forum especially among young people where users can post anything and everything.It has a large international community and a lot of programming related content. Reddit is a place for all possible topics of discussion whereas Stack Overflow is centered around programming languages and ideas and discussions surrounding it. Stack overflow is more of a question answer based system. Reddit is mostly a post and comments based system. Both of these websites have an upvote/downvote system and are great resources for coders and programmers around the globe. 
 
-We want to use data from the Reddit forum in order to better understand the popularity of Programming languages among Reddit users.Additionally, we want to compare it to data from the Stack Overflow forum. We want to evaluate what programming languages are being discussed in both forums and compare how their usage or popularity has changed over time. For reaching our aim we want to use Visualization and Machine Learning methods based on text data but also use the quantification that we get from the upvotes and number of comments on both the platforms.
+## Background and Motivation
 
-Since both platforms are very popular and most sought after and contain a lot of discussion related to programming, it would be good to study and analyse the trend of how users have been using some of the topmost programming languages. The change of trend would help us in understanding  how the popularity of programming language has changed over time and also we could then predict which programming language would be kind of centre of discussion or most queried of in these two platforms. 
+Reddit is known as the "Front Page of the Internet" and is a popular forum especially among young people where users can post anything and everything. Unlike other social media platforms the majority of the Reddit users remain anonymous. We believe that the anonymity of the forum allows us to train and test NLP models.
+It has a large international community and a lot of programming related content. We want to use data from the Reddit forum in order to better understand the popularity of Programming languages among Reddit users.
 
+Additionally we want to compare it to data from the Stackoverflow forum. The Stackoverflow forum is a forum that is more focussing on solving programming related Problems.
 
-# Project Objective 
-
-The objective of our project is to find a correlation between the different parameters of  questions or posts in these platforms and try to calculate how the popularity of programming language has changed over time. And then further we would like to predict what would be the trends of these programming languages in near future. We could use this information to also relate the kinds of problems or topics which are most related with this programming languages and analyze the kind of topics or solutions most used for certain kinds of problems. We would try to answer the following kinds of research questions :
+We want to evaluate what programming languages are being discussed in both forums and compare them. For reaching our aim we want to use Visualization methods Machine Learning methods based on text data but also use the quantification that we get from the upvotes and number of comments.
 
 
 ## Research Questions
+
+::: columns
+
+:::: column
 
 - Can we decide which topic/language a certain post is about?
 - How do number of upvotes, comments and number of posts correlate to popularity?
@@ -37,9 +71,38 @@ The objective of our project is to find a correlation between the different para
 - Can we predict the popularity of programming languages in the future?
 - How do the two platforms compare based on programming languages?
 
+::::
 
-# Design overview
+:::: column
+```{r reddit1, echo=FALSE,warning=FALSE,message=FALSE,fig.align = 'right'}
+data_frame <- reddit_data %>% 
+  select("data.id","data.title")%>%
+  mutate(doc_id=data.id,
+         text = data.title
+         )%>%
+  select("doc_id","text")
+  
+wordcloud(data_frame$text)
+      
+```
+::::
+
+:::
+
+
+## Design overview
 For the Reddit posts the plan is to use an API from Reddit to get data sets for a certain time range and a number of specific Subreddits. The choice of the Subreddits is crucial for the quality and expressiveness of our data and will be based on some prior research on interesting Subreddits regarding programming. From this data we can then get the Subreddit, title, text, upvotes and various metadata.
+
+### Data set example
+
+```{r reddit2, echo=FALSE,warning=FALSE,message=FALSE}
+
+
+       reddit_data%>%
+         head(3)%>%
+         knitr::kable()%>%
+         kable_paper("hover", full_width = F)
+```
 
 
 ### Data Preprocessing
@@ -77,60 +140,18 @@ For the Reddit posts the plan is to use an API from Reddit to get data sets for 
   - Checkboxes or Dropdown menus to select different programming languages
 - Bonus: Shiny offers the opportunity of refreshing the data sets on a web page making it possible to get new insights everyday
 
-# Datasets
-1. Stackoverflow Data dump : https://archive.org/download/stackexchange
-2. Reddit Data : 
-```{r reddit, echo=FALSE,warning=FALSE,message=FALSE}
+### Time plan
 
+```{r timeplan, echo=FALSE,warning=FALSE,message=FALSE}
 
-       fromJSON(url(paste("https://www.reddit.com/r/",
-                          "coding",
-                          "/new/.json?limit=",
-                          10,sep="")),flatten = T)$data$children%>%
-                      select("data.subreddit",
-                             "data.title",
-                             #"data.author",
-                             #"data.selftext",
-                             #"data.name",
-                             "data.id",
-                             #"data.domain",
-                             #"data.url",
-                             "data.created",
-                             "data.created_utc",
-                             "data.upvote_ratio",
-                             "data.ups",
-                             "data.score",
-                             "data.num_comments"
-                             )%>%
-         head(3)%>%
-         knitr::kable()%>%
-         kable_paper("hover", full_width = F)
+       read.csv("timeline.csv")%>%
+          mutate(task=str_wrap(task,12))%>%
+          vistime(
+            col.event = "task",  
+            col.group = "owner", 
+            col.color= "color",
+            title = "Project Timelines",
+              linewidth = 90
+        )
 ```
 
-
-
-### Time plan including distribution of responsibilities and workload among team members written as weekly deadlines
-
-- Data Collection Reddit | Michael & Sharanya 
-- Data Collection Stack Overflow | Indrani & Indranil
-- Preprocessing Reddit | Michael & Sharanya 
-- Preprocessing Stack Overflow | Indrani & Indranil
-- Exploratory Data Analysis and Visualization Reddit Data | Michael & Indranil
-- Exploratory Data Analysis and Visualization Stack Overflow  | Michael & Indranil
-- Topic Modelling and Clustering Reddit | Indrani| Sharanya
-- Topic Modelling and Clustering Stack Overflow | Indrani| Sharanya
-- Implementing decision trees on Reddit | 
-- Implementing decision trees on Stack Overflow |
-- Implementing ensemble methods on Reddit |
-- Implementing ensemble methods on Stack Overflow |
-- Visualization of results of Reddit | 
-- Visualization of results of Stack Overflow |
-- Creating Shiny Application | Indrani | Indranil | Michael | Sharanya
-- Documentation, Bonus Task , Preparing presentation | Indrani | Indranil | Michael | Sharanya
-
-24-30 May
-31-6 June
-7- 13 June
-14- 20 June
-21-27 June
-28-6 July

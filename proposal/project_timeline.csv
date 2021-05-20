@@ -1,0 +1,11 @@
+Event ,Start,End,Owner,Color
+"Data Collection, Preprocesing Reddit",5/24/2021,5/30/2021,"Michael, Sharanya",yellow
+"Data Collection, Preprocesing Stack Overflow",5/24/2021,5/30/2021,"Indrani , Indranil",yellow
+EDA and Visualization Reddit,5/31/2021,6/6/2021,"Michael, Indranil",yellow
+EDA and Visualization Stack Overflow,5/31/2021,6/6/2021,"Michael, Indranil",yellow
+Topic Modelling Reddit,6/7/2021,6/13/2021,"Indrani , Sharanya",blue
+Topic Modelling Stackoverflow,6/7/2021,6/13/2021,"Indrani , Sharanya",blue
+Forecasting Reddit,6/14/2021,6/20/2021,"Michael, Sharanya, ",red
+Forecasting Stack Overflow,6/14/2021,6/20/2021,"Indrani , Indranil",red
+Shiny App,6/21/2021,6/27/2021,"Indrani , Indranil, Michael, Sharanya",red
+Documentation & Bonus Tasks,6/28/2021,7/6/2021,"Indrani , Indranil, Michael, Sharanya",red
