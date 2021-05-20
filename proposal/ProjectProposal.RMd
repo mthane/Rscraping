@@ -145,7 +145,8 @@ For the Reddit posts the plan is to use an API from Reddit to get data sets for 
 ### Shiny application
 - Using shiny as a tool for interactive exploration of the data set
   - Sliders for selecting a time range of interest
-  - Checkboxes or Dropdown menus to select different programming languages
+  - Checkboxes or Dropdown menus to select different programming           languages
+  - Dropdown to visualize wordcloud on different clusters
 - Bonus: Shiny offers the opportunity of refreshing the data sets on a web page making it possible to get new insights everyday
 
 ::::
