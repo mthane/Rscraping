@@ -1,6 +1,6 @@
 ---
 title: "Trends in Programming Language Popularity"
-author: "Michael Thane"
+author: "Indrani ,Indranil, Michael Thane, Sharanya Hunasamaranahalli Thotadarya"
 date: "11 5 2021"
 
 output:
