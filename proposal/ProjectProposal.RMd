@@ -24,7 +24,7 @@ library(stringr)
 ```{r reddit, echo=FALSE,warning=FALSE,message=FALSE}
 
        reddit_data <- fromJSON(url(paste("https://www.reddit.com/r/",
-                          "programming",
+                          "coding",
                           "/new/.json?limit=",
                           100,sep="")),flatten = T)$data$children%>%
                       select("data.subreddit",
@@ -61,7 +61,7 @@ Since both platforms are very popular and most sought after and contain a lot of
 
 
 # Project Objective 
-The objective of our project is to find a correlation between the different parameters of  questions or posts in these platforms and try to calculate how the popularity of programming language has changed over time. And then further we would like to predict what would be the trends of these programming languages in near future. We could use this information to also relate the kinds of problems or topics which are most related with this programming languages and analyze the kind of topics or solutions most used for certain kinds of problems. We would try to answer the following kinds of research questions :
+The objective of our project is to find a correlation between the different parameters of  questions or posts in these platforms and try to calculate how the popularity of programming language has changed over time. And then further we would like to predict what would be the trends of these programming languages in near future. We could use this information to also relate the kinds of problems or topics which are most related with this programming languages and analyze the kind of topics or solutions most used for certain kinds of problems. We would try to answer the following research questions :
 
 
 ## Research Questions
@@ -178,6 +178,7 @@ For Stackoverflow we plan to use the datadumps available on internet archive and
             col.color= "color",
             title = "Project Timelines",
               linewidth = 90
+            
         )
 ```
 

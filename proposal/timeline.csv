@@ -1,8 +1,8 @@
 ,task,start,end,owner,color
-1,"Data Collection,Data Preprocessing Reddit",2021-05-24,2021-05-30,Michael,#ffea96
-2,"Data Collection,Data Preprocessing Reddit",2021-05-24,2021-05-30,Sharanya,#ffea96
-3,"Data Collection,Data Preprocessing Stack Overflow",2021-05-24,2021-05-30,Indrani,#ffea96
-4,"Data Collection,Data Preprocessing Stack Overflow",2021-05-24,2021-05-30,Indranil,#ffea96
+1,"Data Collection, Preprocessing Reddit",2021-05-24,2021-05-30,Michael,#ffea96
+2,"Data Collection, Preprocessing Reddit",2021-05-24,2021-05-30,Sharanya,#ffea96
+3,"Data Collection, Preprocessing Stack Overflow",2021-05-24,2021-05-30,Indrani,#ffea96
+4,"Data Collection, Preprocessing Stack Overflow",2021-05-24,2021-05-30,Indranil,#ffea96
 5,EDA & Visualization Reddit & Stack Over flow,2021-05-31,2021-06-06,Michael,#ffea96
 6,EDA & Visualization Reddit & Stack Over flow,2021-05-31,2021-06-06,Indranil,#ffea96
 7,Topic Modelling Reddit & Stack Overflow,2021-06-07,2021-06-13,Indrani,#4ed4b5
