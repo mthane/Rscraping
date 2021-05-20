@@ -24,7 +24,7 @@ library(stringr)
 ```{r reddit, echo=FALSE,warning=FALSE,message=FALSE}
 
        reddit_data <- fromJSON(url(paste("https://www.reddit.com/r/",
-                          "webdesign",
+                          "programming",
                           "/new/.json?limit=",
                           100,sep="")),flatten = T)$data$children%>%
                       select("data.subreddit",
@@ -57,7 +57,7 @@ Reddit and Stackoverflow are two community based websites which are used heavily
 
 We want to use data from the Reddit forum in order to better understand the popularity of Programming languages among Reddit users.Additionally, we want to compare it to data from the Stack Overflow forum. We want to evaluate what programming languages are being discussed in both forums and compare how their usage or popularity has changed over time. For reaching our aim we want to use Visualization and Machine Learning methods based on text data but also use the quantification that we get from the upvotes and number of comments on both the platforms.
 
-Since both platforms are very popular and most sought after and contain a lot of discussion related to programming, it would be good to study and analyse the trend of how users have been using some of the topmost programming languages. The change of trend would help us in understanding  how the popularity of programming language has changed over time and also we could then predict which programming language would be kind of centre of discussion or most queried of in these two platforms. 
+Since both platforms are very popular and most sought after and contain a lot of discussion related to programming, it would be good to study and analyse the trend of how users have been using some of the topmost programming languages. The change of trend would help us in understanding  how the popularity of programming language has changed over time and also we could then predict which programming language would be centre of discussion or most queried of in these two platforms in near future. 
 
 
 # Project Objective 
@@ -95,10 +95,13 @@ wordcloud(data_frame$text)
 :::
 
 
-# Design overview
+# Datasets
+
 For the Reddit posts the plan is to use an API from Reddit to get data sets for a certain time range and a number of specific Subreddits. The choice of the Subreddits is crucial for the quality and expressiveness of our data and will be based on some prior research on interesting Subreddits regarding programming. From this data we can then get the Subreddit, title, text, upvotes and various metadata.
 
-### Data set example
+For Stackoverflow we plan to use the datadumps available on internet archive and then merge them and further preprocess to use it for analysis, visualisation and prediction tasks.
+
+### Data set example (Reddit Dataset)
 
 ```{r reddit2, echo=FALSE,warning=FALSE,message=FALSE}
 
@@ -111,7 +114,7 @@ For the Reddit posts the plan is to use an API from Reddit to get data sets for 
 ::: columns
 
 :::: column
-
+# Design overview
 ### Data Preprocessing
 - Stackoverflow Data Dumps : 
   https://archive.org/download/stackexchange
