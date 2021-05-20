@@ -103,7 +103,9 @@ For the Reddit posts the plan is to use an API from Reddit to get data sets for 
          knitr::kable()%>%
          kable_paper("hover", full_width = F)
 ```
+::: columns
 
+:::: column
 
 ### Data Preprocessing
 - Fetching the Reddit data from the pushshift API 
@@ -140,6 +142,15 @@ For the Reddit posts the plan is to use an API from Reddit to get data sets for 
   - Checkboxes or Dropdown menus to select different programming languages
 - Bonus: Shiny offers the opportunity of refreshing the data sets on a web page making it possible to get new insights everyday
 
+::::
+
+:::: column
+
+![](diagram.png)
+
+::::
+
+:::
 ### Time plan
 
 ```{r timeplan, echo=FALSE,warning=FALSE,message=FALSE}
