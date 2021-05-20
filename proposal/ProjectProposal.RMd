@@ -8,6 +8,7 @@ output:
     theme: journal
   pdf_document: default
 ---
+[Github Repository Link](https://github.com/mthane/Rscraping)
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -108,6 +109,9 @@ For the Reddit posts the plan is to use an API from Reddit to get data sets for 
 :::: column
 
 ### Data Preprocessing
+- Stackoverflow Data Dumps : https://archive.org/download/stackexchange
+- Using the different stackoverflow dumps  ( posts, tags, users, votes,   posthistory,comments etc.)
+- Merging this separate data dumps to get relevant data and make it      comparable with Reddit data before using it for our analysis and       visualisation
 - Fetching the Reddit data from the pushshift API 
 - Finding relevant subreddits
 - Selecting the features that should be used 
@@ -142,9 +146,6 @@ For the Reddit posts the plan is to use an API from Reddit to get data sets for 
   - Checkboxes or Dropdown menus to select different programming languages
 - Bonus: Shiny offers the opportunity of refreshing the data sets on a web page making it possible to get new insights everyday
 
-### Git URL
-
-https://github.com/mthane/Rscraping.git
 ::::
 
 :::: column
