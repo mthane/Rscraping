@@ -1,7 +1,7 @@
 ---
 title: "Trends in Programming Language Popularity"
-author: "Indrani ,Indranil, Michael Thane, Sharanya Hunasamaranahalli Thotadarya"
-date: "11 5 2021"
+author: "Indrani Sarkar ,Indranil Maji, Michael Thane, Sharanya Hunasamaranahalli Thotadarya"
+date: "20.5.2021"
 
 output:
   rmarkdown::html_document:
@@ -56,7 +56,7 @@ It has a large international community and a lot of programming related content.
 
 Additionally we want to compare it to data from the Stackoverflow forum. The Stackoverflow forum is a forum that is more focussing on solving programming related Problems.
 
-We want to evaluate what programming languages are being discussed in both forums and compare them. For reaching our aim we want to use Visualization methods Machine Learning methods based on text data but also use the quantification that we get from the upvotes and number of comments.
+We want to evaluate what programming languages are being discussed in both forums and compare them. For reaching our aim we want to use Visualization and Machine Learning methods based on text data but also use the quantification that we get from the upvotes and number of comments.
 
 
 ## Research Questions
@@ -142,6 +142,9 @@ For the Reddit posts the plan is to use an API from Reddit to get data sets for 
   - Checkboxes or Dropdown menus to select different programming languages
 - Bonus: Shiny offers the opportunity of refreshing the data sets on a web page making it possible to get new insights everyday
 
+### Git URL
+
+https://github.com/mthane/Rscraping.git
 ::::
 
 :::: column
