@@ -53,7 +53,7 @@ library(stringr)
 # Background and Motivation
 
 
-Reddit and Stackoverflow are two community based websites which are used heavily by people all across the world. Reddit is known as the “Front Page of the Internet” and is a popular forum especially among young people where users can post anything and everything.It has a large international community and a lot of programming related content. Reddit is a place for all possible topics of discussion whereas Stack Overflow is centered around programming languages and ideas and discussions surrounding it. Stack overflow is more of a question answer based system. Reddit is mostly a post and comments based system. Both of these websites have an upvote/downvote system and are great resources for coders and programmers around the globe. 
+Reddit and Stackoverflow are two community based websites which are used heavily by people all across the world. Reddit is known as the “Front Page of the Internet” and is a popular forum especially among young people where users can post anything and everything.It has a large international community and a lot of programming related content. Reddit is a place for all possible topics of discussion whereas Stack Overflow is centered around programming languages, ideas and discussions surrounding it. Stack overflow is more of a question answer based system. Reddit is mostly a post and comments based system. Both of these websites have an upvote/downvote system and are great resources for coders and programmers around the globe. 
 
 We want to use data from the Reddit forum in order to better understand the popularity of Programming languages among Reddit users.Additionally, we want to compare it to data from the Stack Overflow forum. We want to evaluate what programming languages are being discussed in both forums and compare how their usage or popularity has changed over time. For reaching our aim we want to use Visualization and Machine Learning methods based on text data but also use the quantification that we get from the upvotes and number of comments on both the platforms.
 
@@ -136,24 +136,25 @@ For Stackoverflow we plan to use the datadumps available on internet archive and
 - Using 2D embedding of the posts and using a scatterplot to show similarity 
 - Comparing stackoverflow and Reddit in the plots
 
-### Classification of topics
-- Using topic modeling using LDA - Latent Dirichlet Allocation
-- Using decision trees or ensemble methods
+### Algorithms
+- Clustering on posts : K-Means Algorithm
+- Topic Modeling on individual clusters : LDA - Latent Dirichlet Allocation
+- Classifying relevant/irrelevant Posts : Decision trees or ensemble methods
 - Using sentiment analysis and clustering to evaluate if a post is a professional question or an opinion
 
 ### Prediction of future popularity
-- ARIMA
-- SARIMA
+- Auto Regressive Integrated Moving Average (ARIMA)
 - Exponential Smoothing
-- Random Forest (based on CART)
+- Random Forest
 
 
 
 ### Shiny application
 - Using shiny as a tool for interactive exploration of the data set
   - Sliders for selecting a time range of interest
-  - Checkboxes or Dropdown menus to select different programming           languages
+  - Checkboxes or Dropdown menus to select different programming languages
   - Dropdown to visualize wordcloud on different clusters
+  - Further enhancements based on data visualisation
 - Bonus: Shiny offers the opportunity of refreshing the data sets on a web page making it possible to get new insights everyday
 
 ::::
