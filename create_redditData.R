@@ -10,14 +10,29 @@ library(data.table)
 library(plotly)
 library(tidytext)
 library(wordcloud)
-
-
+library(lubridate)
+library(RCurl)
 create_redditData <- function(subreddit,
                               nposts=100,
                               from=NA,
                               to=NA,
                               sort_type="created_utc"){
   
+  columns <- c("subreddit",
+               "title",
+               "author",
+               "selftext",
+               "id",
+               "domain",
+               "url",
+               "created_utc",
+               #"upvote_ratio",
+               "score",
+               "num_comments"
+    
+    
+  )
+  df = NA
   if(is.na(from) | is.na(to)){
     pushshift_url = paste("https://api.pushshift.io/reddit/search/submission/?",
                           "&size=",nposts,
@@ -35,35 +50,54 @@ create_redditData <- function(subreddit,
                           "&sort_type=",sort_type,
                           sep="")
   }
+  tryCatch(
+    {
+      
+      df = fromJSON(URLencode(pushshift_url),flatten = T)$data%>%as.data.frame()
+    },
+    error=function(cond) {
+      message(paste("URL does not seem to exist:", pushshift_url))
+      message("Here's the original error message:")
+      message(cond)
+      return(NA)
+    }
+  )
+  print(nrow(df))
   
-  
-  fromJSON(url(pushshift_url),flatten = T)$data%>%
-    select("subreddit",
-            "title",
-            "author",
-            "selftext",
-            "id",
-            "domain",
-            "url",
-            "created_utc",
-            #"upvote_ratio",
-            "score",
-            "num_comments",
-            "subreddit_subscribers"
-     )
+  if(length(df)<1){
+    return(NA)
+  }
+  if(!is.na(df)&!is.null(df))
+  {
+    if(columns %in% colnames(df)& nrow(df)>0){
+      
+      df%>%select(columns)
+    }
+  }else{
+    print("no data available")
+    NA
+  }
+
   
 }
 
-d <- create_redditData("programming")
+#d <- create_redditData("programming")
 
 fetch_subreddits <- function(subreddits,sort_type="created_utc",from=NA,to=NA){
-  
-  l = list(subreddit = subreddits,
+  print(subreddits)
+  l = data.frame(subreddit = subreddits,
            sort_type = rep(sort_type,length(subreddits)),
            from = rep(from,length(subreddits)),
            to = rep(to,length(subreddits)))
-  pmap(l,create_redditData)%>%bind_rows()
 
+  rds <- list()
+  for (i in 1:length(subreddits)){
+    print(l[i,]$subreddit)
+    rd <- create_redditData(l[i,]$subreddit,l[i,]$sort_type,l[i,]$from,l[i,]$to)
+    Sys.sleep(sample(1:5, 1)/500)
+    rds[[i]]<- rd
+  }
+  bind_rows(rds[!is.na(rds)])
 }
 
 
@@ -89,50 +123,57 @@ extract_languages <- function(data){
 }
 
 
-# redditData <- fetch_subreddits(
-#   c(
-#     "LearnProgramming",
-#     "AskProgramming",
-#     "Programming",
-#     "Coding",
-#     "datascience",
-#     "MachineLearning"
-#    ),sort_type = "num_comments"
-#   )%>%
-#   extract_languages()
 
 
-#
-# to = paste(seq(0,3000,10),"d",sep="")
-# from = paste(seq(10,3010,10),"d",sep="")
-# rdfs <- list()
+fetch_redditData <- function(from,to,subreddits){
+  d = difftime(from, to,
+               units = c("days"))
+  y <- as.POSIXct(from) +lubridate::days(1:as.numeric(d))
+  times <- format(round(as.numeric(y), 3), digits = 13)
+  to <- times[seq(1,length(times)-1)]
+  from <- times[seq(2,length(times))]
+  rdfs <- list()
+  for (i in 1:length(from)){
+    print(round(i/length(from),3))
+    rd <- fetch_subreddits(
+      subreddits,
+      sort_type = "num_comments",
+      from= from[i],
+      to = to[i]
+    )%>%
+      extract_languages()
+    rdfs[[i]] <- rd
+  }
+  bind_rows(rdfs[!is.na(rdfs)])
+  
+}
+### TESTING
+time1 = "2016-10-01"
+time2 = "2016-12-31"
+sreddits <- c(
+      "LearnProgramming",
+      "AskProgramming",
+      "Programming",
+      "Coding",
+      "datascience",
+      "MachineLearning",
+      "webdev",
+      "Python",
+      "javascript",
+      "golang",
+      "ProgrammerHumor"
+    )
+
+rd <- fetch_redditData(time1,time2,subreddits=sreddits)
 # 
-# for (i in 1:length(from)){
-#   Sys.sleep(sample(1:5, 1)/100)
-#   print(from[i])
-#   rd <- fetch_subreddits(
-#     c(
-#       "LearnProgramming",
-#       "AskProgramming",
-#       "Programming",
-#       "Coding",
-#       "datascience",
-#       "MachineLearning",
-#       "rprogramming",
-#       "Python"
-#     ),sort_type = "num_comments",
-#     from= from[i],
-#     to = to[i]
-#   )%>%
-#   extract_languages()
-#   rdfs[[i]] <- rd
-# }
+
+fwrite(rd, "2016_rd.csv")
 
 
 redditData <- fread("reddit_raw4.csv")
 ###### PLOTS
 
-
+redditData <- rd
 p <- redditData %>%
   filter(wordcount!=0)%>%
   ggplot(aes(x=language,y=wordcount))+
@@ -158,11 +199,11 @@ plot_wordprop <- function(redditData){
     ),
     names_to = "language",
     values_to = "values")%>%
-    filter(wordprop!=0)%>%
+    filter(languageprop !=0)%>%
     mutate(date = as.POSIXct(created_utc, origin="1970-01-01"))%>%
     ggplot(aes(x=date,y=values))+
     
-    geom_point(alpha=0.2)+
+    #geom_point(alpha=0.2)+
     geom_smooth()+
     facet_grid(vars(language), scales="free")
   
@@ -170,7 +211,7 @@ plot_wordprop <- function(redditData){
   
 }
 
-plot_wordprop(redditData)
+plot_wordprop(rd)
 
 
 lda_topic_model <- function(redditData,K){
