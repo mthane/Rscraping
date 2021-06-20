@@ -2,15 +2,25 @@
 
 redditDataCollectionUI <- function(id){
   ns <- NS(id)
-  wellPanel(
-  textInput(ns("reddit"),"Reddit","de"),
-  numericInput(ns("nposts"),"Number of posts",10),
-  dateInput(ns("time_from"), "From", value = Sys.time()),
-  dateInput(ns("time_to"), "To", value= Sys.time()),
-  actionButton(ns("scrape_json"),"Scrape"),
-
-  DTOutput(ns("tableAPI")),
-  textOutput(ns("time_test"))
+  fluidRow(
+  column(4,
+         wellPanel(
+         # dateInput(ns("time_from"), "From", value = Sys.time()),
+         # dateInput(ns("time_to"), "To", value= Sys.time()),
+         # actionButton(ns("scrape_json"),"Scrape"),
+         fileInput(ns("fileReddit"),
+                   "Choose CSV File",
+                   multiple = FALSE,
+                   accept = c("text/csv",
+                              "text/comma-separated-values,text/plain",
+                              ".csv"))
+         
+         )
+         ),
+  column(8,
+         
+         DTOutput(ns("tableReddit"))
+         )
 )}
 
 redditDataCollectionServer <- function(id) {
@@ -18,39 +28,47 @@ redditDataCollectionServer <- function(id) {
       id,
       function(input, output, session) {
         
-        redditData <- eventReactive(input$scrape_json,
-                                       {
-                                         data <- fetch_redditData(input$time_from,
-                                                          input$time_to,
-                                                          c(
-                                                            "LearnProgramming",
-                                                            "AskProgramming",
-                                                            "Programming",
-                                                            "Coding",
-                                                            "datascience",
-                                                            "MachineLearning",
-                                                            "webdev",
-                                                            "Python",
-                                                            "javascript",
-                                                            "golang",
-                                                            "ProgrammerHumor"
-                                                          )
-                                                          )
-                                         data
-                                       })
+        
+        redditData <-  reactive({
+          req(input$fileReddit)
+          read.csv(input$fileReddit$datapath)})
+        
+        # redditData <- eventReactive(input$scrape_json,
+        #                                {
+        #                                  data <- fetch_redditData(input$time_from,
+        #                                                   input$time_to,
+        #                                                   c(
+        #                                                     "LearnProgramming",
+        #                                                     "AskProgramming",
+        #                                                     "Programming",
+        #                                                     "Coding",
+        #                                                     "datascience",
+        #                                                     "MachineLearning",
+        #                                                     "webdev",
+        #                                                     "Python",
+        #                                                     "javascript",
+        #                                                     "golang",
+        #                                                     "ProgrammerHumor"
+        #                                                   )
+        #                                                   )
+        #                                  data
+        #                                })
 
 
-        output$tableAPI <- renderDataTable({
+        output$tableReddit <- renderDataTable({
           req(redditData())
-          req(input$scrape_json)
-          redditData()
-        })
-        output$time_test <- renderPrint({
-
-          print(as.numeric(input$time_from))
-        })
+          datatable(redditData())#%>%
+            
+            #formatStyle( 0, target= 'row',color = 'black', backgroundColor = 'yellow',
+            #             fontWeight ='bold', lineHeight='20%')
+        },
+        options = list(scrollX = TRUE,pageLength = 5,autowidth=TRUE))
+        
+        redditData 
       }
   )
+  
+  
 }
 
 

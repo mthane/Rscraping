@@ -30,16 +30,46 @@ library(shinyTime)
 library(shinydashboard)
 source("shiny/Code/datacollection_module.R")
 
+source("shiny/Code/Programmingtrend_module.R")
+
 ui <- dashboardPage(
-    dashboardHeader(title = "Basic dashboard"),
-    dashboardSidebar(),
+    dashboardHeader(title = "Programming Trends"),
+    dashboardSidebar(
+        sidebarMenu(
+        menuItem("Data sets", tabName = "datasets"),
+        
+        menuItem("Trends", tabName = "trends")
+        
+        )
+    ),
     dashboardBody(
-        redditDataCollectionUI("redditDataCollection")
+        tabItems(
+        tabItem("datasets",
+                tabsetPanel(
+                    tabPanel("Reddit Data",
+                             redditDataCollectionUI("redditDataCollection")
+                    ),
+                    tabPanel("Stackoverflow Data"
+                    )
+                    
+                    
+                )
+        ),
+        tabItem("trends",
+                trendUI("trend")
+                )
     )
+    
+    )
+    
+    
 )
 
 server <- function(input, output) {
-    redditDataCollectionServer("redditDataCollection")
+    data <- redditDataCollectionServer("redditDataCollection")
+    options(shiny.maxRequestSize=100*1024^2)
+    trendServer("trend",data)
+    
 }
 
 shinyApp(ui, server)

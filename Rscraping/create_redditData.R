@@ -205,13 +205,8 @@ plot_wordprop <- function(redditData){
     
     #geom_point(alpha=0.2)+
     geom_smooth()+
-    facet_grid(vars(language), scales="free")
-  
-  
-  
+    facet_grid(vars(language), scales="free")  
 }
-
-plot_wordprop(rd)
 
 
 lda_topic_model <- function(redditData,K){
