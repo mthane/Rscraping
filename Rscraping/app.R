@@ -15,12 +15,9 @@ library(rebus)
 # Eases DateTime manipulation
 library(lubridate)
 library(DT)
-library(rjson)
 library(purrr)
-library(htm2txt)
-library(XML)
 library(data.table)
-library("jsonlite")
+library(jsonlite)
 library(shinyTime)
 
 source("RedditScraper.R")
