@@ -1,4 +1,4 @@
-
+##Reddit data upload
 
 redditDataCollectionUI <- function(id){
   ns <- NS(id)
@@ -58,9 +58,6 @@ redditDataCollectionServer <- function(id) {
         output$tableReddit <- renderDataTable({
           req(redditData())
           datatable(redditData())#%>%
-            
-            #formatStyle( 0, target= 'row',color = 'black', backgroundColor = 'yellow',
-            #             fontWeight ='bold', lineHeight='20%')
         },
         options = list(scrollX = TRUE,pageLength = 5,autowidth=TRUE))
         
@@ -80,11 +77,11 @@ create_redditData <- function(subreddit,
   
   columns <- c("subreddit",
                "title",
-               "author",
+               #"author",
                "selftext",
                "id",
-               "domain",
-               "url",
+               #"domain",
+               #"url",
                "created_utc",
                #"upvote_ratio",
                "score",
@@ -208,3 +205,53 @@ fetch_redditData <- function(from,to,subreddits){
   
 }
 
+
+
+
+
+
+##Stackoverflow data upload
+
+stackoverflowDataCollectionUI <- function(id){
+  ns <- NS(id)
+  fluidRow(
+    column(4,
+           wellPanel(
+             fileInput(ns("fileStackoverflow"),
+                       "Choose CSV File",
+                       multiple = FALSE,
+                       accept = c("text/csv",
+                                  "text/comma-separated-values,text/plain",
+                                  ".csv"))
+             
+           )
+    ),
+    column(8,
+           
+           DTOutput(ns("tablestackoverflow"))
+    )
+  )}
+
+
+stackoverflowDataCollectionServer <- function(id) {
+  moduleServer(
+    id,
+    function(input, output, session) {
+      
+      
+      stackoverflowData <-  reactive({
+        req(input$fileStackoverflow)
+        read.csv(input$fileStackoverflow$datapath)})
+      
+      output$tablestackoverflow <- renderDataTable({
+        req(stackoverflowData())
+        datatable(stackoverflowData())
+      },
+      options = list(scrollX = TRUE,pageLength = 5,autowidth=TRUE))
+      
+      stackoverflowData 
+    }
+  )
+  
+  
+}

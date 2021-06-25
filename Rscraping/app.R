@@ -21,7 +21,8 @@ ui <- dashboardPage(
                         tabPanel("Reddit Data",
                                  redditDataCollectionUI("redditDataCollection")
                         ),
-                        tabPanel("Stackoverflow Data"
+                        tabPanel("Stackoverflow Data",
+                                 stackoverflowDataCollectionUI("stackoverflowDataCollection")
                         )
                         
                         
