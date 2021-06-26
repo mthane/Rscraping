@@ -140,16 +140,16 @@ fetch_redditData <- function(from,to,subreddits){
       sort_type = "num_comments",
       from= from[i],
       to = to[i]
-    )%>%
-      extract_languages()
+    )#%>%
+      #extract_languages()
     rdfs[[i]] <- rd
   }
   bind_rows(rdfs[!is.na(rdfs)])
   
 }
 ### TESTING
-time1 = "2016-10-01"
-time2 = "2016-12-31"
+time1 = "2018-01-01"
+time2 = "2019-01-01"
 sreddits <- c(
       "LearnProgramming",
       "AskProgramming",
@@ -165,29 +165,39 @@ sreddits <- c(
     )
 
 rd <- fetch_redditData(time1,time2,subreddits=sreddits)
+#
+
+fwrite(rd, "18_rd.csv")
 # 
+# 
+# redditData <- fread("2016_rd.csv")
+# ###### PLOTS
+# 
+# redditData <- rd
+# p <- nd %>%
+#   ggplot(aes(x=language,y=score))+
+#   geom_boxplot()
+# 
+# ggplotly(p)
 
-fwrite(rd, "2016_rd.csv")
-
-
-redditData <- fread("reddit_raw4.csv")
-###### PLOTS
-
-redditData <- rd
-p <- redditData %>%
-  filter(wordcount!=0)%>%
-  ggplot(aes(x=language,y=wordcount))+
-  geom_boxplot()
-
-ggplotly(p)
 
 #
 #
 ma <- function(x, n =30){stats::filter(x, rep(1 / n, n), sides = 2)}
 library(stats)
 
-redditData <- fread("reddit_raw4.csv")
-colnames(redditData) <- c(colnames(redditData)[1:ncol(redditData)-1],"wordprop")
+# redditData <- fread("reddit_raw4.csv")
+# colnames(redditData) <- c(colnames(redditData)[1:ncol(redditData)-1],"wordprop")
+# nd <- redditData%>%
+#   pivot_longer(c('wordprop_java',
+#                  'wordprop_cpp',
+#                  'wordprop_python',
+#                  'wordprop_r'
+#   ),
+#   names_to = "language",
+#   values_to = "values")%>%
+#   group_by(id)%>%
+#   slice_max(values)
 
 
 plot_wordprop <- function(redditData){
@@ -211,8 +221,8 @@ plot_wordprop <- function(redditData){
 
 lda_topic_model <- function(redditData,K){
   text <- redditData$selftext
-  
-  corpus <- Corpus(VectorSource(text))
+  df <- data.frame(text = text,doc_id = seq(1,length(text)))%>%na.omit()
+  corpus <- VCorpus(DataframeSource(df))
   #tdm <- TermDocumentMatrix(corpus)
   
   english_stopwords <- readLines("https://slcladal.github.io/resources/stopwords_en.txt", encoding = "UTF-8")
@@ -231,6 +241,7 @@ lda_topic_model <- function(redditData,K){
   processedCorpus <- tm_map(processedCorpus, stripWhitespace)
   message("create DTM")
   minimumFrequency <- 15
+  
   DTM <- DocumentTermMatrix(processedCorpus, control = list(bounds = list(global = c(minimumFrequency, Inf))))
   #rowTotals <- apply(DTM , 2, sum) #Find the sum of words in each Document
   #dtm.new   <- DTM[rowTotals> 0, ]           #remove all docs without words
@@ -240,20 +251,63 @@ lda_topic_model <- function(redditData,K){
   DTM <- DTM[sel_idx, ]
   
   message("create LDA model")
-  LDA(DTM,K)
+  m = model = LDA(DTM,K)
+  list(dtm = DTM,model = m,corpus = processedCorpus)
 }
 
 
-lda_model <- lda_topic_model(redditData,4)
+#library("ldatuning")
 
-ap_topics <- tidy(lda_model, matrix = "beta")
+# lda_model <- lda_topic_model(redditData,20)
+# 
+# ntopics2 <- FindTopicsNumber(
+#   lda_model$dtm,
+#   topics = seq(from = 5, to = 50, by = 5),
+#   metrics = c("Griffiths2004", "CaoJuan2009", "Arun2010", "Deveaud2014"),
+#   method = "Gibbs",
+#   control = list(seed = 77),
+#   mc.cores = 2L,
+#   verbose = TRUE
+# )
+# FindTopicsNumber_plot(ntopics2)
+# ggsave("ntopics2.png")
 
 
+# 
+# rd_tm <-redditData %>%
+#   mutate(doc_id = 1:nrow(.)) %>%
+#   #filter(doc_id %in%names(tidy(lda_model$model,matrix="gamma")$document))%>%
+#   #mutate(topic = topics(lda_model$model))%>%
+#   cbind(tidy(lda_model$model, matrix = "gamma"))%>%
+#   pivot_longer(c('wordprop_java',
+#                  'wordprop_cpp',
+#                  'wordprop_python',
+#                  'wordprop_r'
+#   ),
+#   names_to = "language",
+#   values_to = "values")%>%
+#   mutate(date = as.POSIXct(created_utc, origin="1970-01-01"))%>%
+#   group_by(id)%>%
+#   slice_max(values)
+# 
+# 
+# 
+# library("ggwordcloud")
 
-plot_frequent_topics <- function(ap_topics){
+# ggplot(
+#   rd_tm %>%filter(gamma>0.8),
+#   aes(label = selftext, size = gamma)
+# ) +
+#   theme_minimal() +
+#   facet_wrap(topic~language)
+
+#ap_topics <- tidy(lda_model$model, matrix = "beta")
+
+
+plot_frequent_topics <- function(ap_topics,n=20){
   ap_top_terms <- ap_topics %>%
     group_by(topic) %>%
-    slice_max(beta, n = 10) %>% 
+    slice_max(beta, n =n) %>% 
     ungroup() %>%
     arrange(topic, -beta)
   
@@ -265,7 +319,7 @@ plot_frequent_topics <- function(ap_topics){
     scale_y_reordered()
   
 }
-plot_frequent_topics(ap_topics)
+#plot_frequent_topics(ap_topics)
 
 plot_wordcloud <- function(ap_topics, n){
   
@@ -279,4 +333,129 @@ plot_wordcloud <- function(ap_topics, n){
   
 }
 
+#plot_wordcloud(ap_topics,5)
+# 
+plot_topic_popularity <- function(rd_tm){
+  ggplot(rd_tm,
+         aes(factor(topic),num_comments))+
+    geom_boxplot()
+}
 
+#plot_topic_popularity(rd_tm)
+
+
+
+library(tm)
+library(proxy)
+library(RTextTools)
+library(fpc)   
+library(wordcloud)
+library(cluster)
+library(stringi)
+library(dplyr)
+
+redditData <- sample_frac(fread("2016_rd.csv"),0.1)
+
+
+df <- data.frame(doc_id = seq(1,length(redditData)))%>%
+  na.omit()%>%
+  mutate(text =paste(redditData$selftext,selftext = redditData$title,collapse =" "))
+
+corpus <- VCorpus(DataframeSource(df))
+#tdm <- TermDocumentMatrix(corpus)
+
+english_stopwords <- readLines("https://slcladal.github.io/resources/stopwords_en.txt", encoding = "UTF-8")
+# Preprocessing chain
+message("transform to lower")
+processedCorpus <- tm_map(corpus, content_transformer(tolower))
+message("remove stopwords")
+processedCorpus <- tm_map(processedCorpus, removeWords, english_stopwords)
+message("remove punctuation")
+processedCorpus <- tm_map(processedCorpus, removePunctuation, preserve_intra_word_dashes = TRUE)
+message("remove numbers")
+processedCorpus <- tm_map(processedCorpus, removeNumbers)
+message("stem document")
+processedCorpus <- tm_map(processedCorpus, stemDocument, language = "en")
+message("strip whitespace")
+processedCorpus <- tm_map(processedCorpus, stripWhitespace)
+message("create DTM")
+minimumFrequency <- 15
+
+DTM <- DocumentTermMatrix(processedCorpus, control = list(bounds = list(global = c(minimumFrequency, Inf))))
+#rowTotals <- apply(DTM , 2, sum) #Find the sum of words in each Document
+#dtm.new   <- DTM[rowTotals> 0, ]           #remove all docs without words
+#print(dtm.new)
+#LDA(dtm.new,K)
+sel_idx <- slam::row_sums(DTM) > 0
+DTM <- DTM[sel_idx, ]
+
+tdm_tfidf <- weightTfIdf(DTM)
+
+
+freq.terms <- findFreqTerms(DTM, lowfreq= 1000)
+
+
+
+#To tackle the sparsity problem and reduce the number of features
+dense <- removeSparseTerms(tdm_tfidf) 
+#tfidf_matrix <- as.matrix(tdm_tfidf)
+library(M3C)
+
+library(lsa)
+M <- lsa(tdm_tfidf,20)
+M$dk%>%
+  as.data.frame()%>%
+  mutate(name = rownames(M$dk))%>%
+  ggplot(aes(V1,V2))+
+    geom_point()
+
+library(data.table)
+library(ggplot2)
+library(ggthemes)
+colS <- colSums(as.matrix(tfidf_matrix))
+doc_features <- data.table(name = attributes(colS)$names, count = colS)
+ggplot(doc_features[count>100],aes(name, count)) + 
+  geom_bar(stat = "identity",fill="lightblue",color="black")+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+ 
+  theme_economist()+ scale_color_economist()
+#elbow method to identify the number of cluster
+rlang::last_error()
+wss<- NULL
+for (i in 1:10){
+  fit = kmeans(tfidf_matrix,centers = i)
+  wss = c(wss, fit$tot.withinss)
+}
+plot(1:10, wss, type = "o")
+
+
+k2 <- kmeans(M$dk, centers = 100, nstart = 25)
+str(k2)
+
+library(factoextra)
+
+fviz_cluster(k2, data = M$dk)
+
+
+
+p<-heatmap(M$dk%>%scale())
+ggsave("heatmap.png",p)
+
+heatmap(dist(M$dk))
+
+
+
+dm <- dist(M$dk)
+
+heatmap(dm%>%as.matrix()%>%scale())
+
+library(corrplot)
+query = "char"
+dtm <- as.matrix(DTM)
+##get the names of the 10 words that correlate the highest with query
+words <- rownames(findAssocs(DTM, query, .005))[1:20]
+find <- colnames(dtm) %in% words
+corr <- cor(dtm[,find])
+#plot heatmap of correlations
+#library(extrafont)
+#par(family="AppleMyungjo") # 한글용 폰트로 설정
+corrplot(corr, type = "upper")
