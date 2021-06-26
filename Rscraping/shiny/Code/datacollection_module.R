@@ -57,7 +57,8 @@ redditDataCollectionServer <- function(id) {
 
         output$tableReddit <- renderDataTable({
           req(redditData())
-          datatable(redditData())#%>%
+              redditData()%>%
+                select(subreddit,title,selftext,id,created_utc,num_comments,score)
             
             #formatStyle( 0, target= 'row',color = 'black', backgroundColor = 'yellow',
             #             fontWeight ='bold', lineHeight='20%')
