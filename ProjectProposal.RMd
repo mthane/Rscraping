@@ -1,0 +1,399 @@
+---
+title: "Project Proposal for Trends in Programming Language Popularity"
+author: "by Indrani Sarkar ,Indranil Maji, Michael Thane, Sharanya Hunasamaranahalli Thotadarya"
+date: "20th May,2021"
+
+output:
+  rmarkdown::html_document:
+    theme: journal
+  pdf_document: default
+---
+[Github Repository Link](https://github.com/mthane/Rscraping)
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(kableExtra)
+library(dplyr)
+library(jsonlite)
+library(wordcloud) 
+library(tm)
+library(vistime)
+library(stringr)
+```
+
+```{r reddit, echo=FALSE,warning=FALSE,message=FALSE}
+
+       reddit_data <- fromJSON(url(paste("https://www.reddit.com/r/",
+                          "coding",
+                          "/new/.json?limit=",
+                          100,sep="")),flatten = T)$data$children%>%
+                      select("data.subreddit",
+                             "data.title",
+                             #"data.author",
+                             #"data.selftext",
+                             #"data.name",
+                             "data.id",
+                             #"data.domain",
+                             #"data.url",
+                             "data.created",
+                             "data.created_utc",
+                             "data.upvote_ratio",
+                             "data.ups",
+                             "data.score",
+                             "data.num_comments"
+                             )
+
+
+      
+```
+
+
+
+
+# Overview and Motivation
+
+
+Reddit and Stackoverflow are two community based websites which are used heavily by people all across the world. Reddit is known as the “Front Page of the Internet” and is a popular forum especially among young people where users can post anything and everything.It has a large international community and a lot of programming related content. Reddit is a place for all possible topics of discussion whereas Stack Overflow is centered around programming languages, ideas and discussions surrounding it. Stack overflow is more of a question answer based system. Reddit is mostly a post and comments based system. Both of these websites have an upvote/downvote system and are great resources for coders and programmers around the globe. 
+
+We want to use data from the Reddit forum in order to better understand the popularity of Programming languages among Reddit users.Additionally, we want to compare it to data from the Stack Overflow forum. We want to evaluate what programming languages are being discussed in both forums and compare how their usage or popularity has changed over time. For reaching our aim we want to use Visualization and Machine Learning methods based on text data but also use the quantification that we get from the upvotes and number of comments on both the platforms.
+
+Since both platforms are very popular and most sought after and contain a lot of discussion related to programming, it would be good to study and analyse the trend of how users have been using some of the topmost programming languages. The change of trend would help us in understanding  how the popularity of programming language has changed over time and also we could then predict which programming language would be centre of discussion or most queried of in these two platforms in near future. 
+
+
+# Project Objective 
+The objective of our project is to find a correlation between the different parameters of  questions or posts in these platforms and try to calculate how the popularity of programming language has changed over time. And then further we would like to predict what would be the trends of these programming languages in near future. We could use this information to also relate the kinds of problems or topics which are most related with this programming languages and analyze the kind of topics or solutions most used for certain kinds of problems. We would try to answer the following research questions :
+
+## Related Work
+
+## Research Questions
+
+
+- Can we decide which topic/language a certain post is about?
+- How do number of upvotes, comments and number of posts correlate to popularity?
+- How does the popularity of programming languages change over time?
+- Can we predict the popularity of programming languages in the future?
+- How do the two platforms compare based on programming languages?
+
+
+
+# Datasets
+
+For the Reddit posts the plan is to use an API from Reddit to get data sets for a certain time range and a number of specific Subreddits. The choice of the Subreddits is crucial for the quality and expressiveness of our data and will be based on some prior research on interesting Subreddits regarding programming. From this data we can then get the Subreddit, title, text, upvotes and various metadata.
+
+For Stackoverflow we plan to use the datadumps available on internet archive and then merge them and further preprocess to use it for analysis, visualisation and prediction tasks.
+
+
+# Design overview
+### Data Preprocessing - Reddit Data
+- Stackoverflow Data Dumps : 
+  https://archive.org/download/stackexchange
+  - Using the different stackoverflow dumps  ( posts, tags, users,         votes,posthistory,comments etc.)
+  - Merging this separate data dumps to get relevant data and make it      comparable with Reddit data before using it for our analysis and       visualisation
+- Reddit Data :
+  - Fetching the Reddit data from the pushshift API 
+  - Finding relevant subreddits
+  - Selecting the features that should be used 
+  - Textpreprocessing:
+    - Removing punctuation and stopwords
+    - Stemming
+    - Vectorization
+
+```{r reddit1, echo=FALSE,warning=FALSE,message=FALSE}
+library(tm)
+library(data.table)
+library(topicmodels)
+library(jsonlite)
+library(dplyr)
+library(ggplot2)
+library(stringr)
+library(tidyverse)
+library(data.table)
+library(plotly)
+library(tidytext)
+library(wordcloud)
+library(lubridate)
+library(RCurl)
+
+create_redditData <- function(subreddit,
+                              nposts=100,
+                              from=NA,
+                              to=NA,
+                              sort_type="created_utc"){
+  
+  columns <- c("subreddit",
+               "title",
+               "author",
+               "selftext",
+               "id",
+               "domain",
+               "url",
+               "created_utc",
+               #"upvote_ratio",
+               "score",
+               "num_comments"
+    
+    
+  )
+  df = NA
+  if(is.na(from) | is.na(to)){
+    pushshift_url = paste("https://api.pushshift.io/reddit/search/submission/?",
+                          "&size=",nposts,
+                          "&subreddit=",subreddit,
+                          "&sort_type=",sort_type,
+                          sep="")
+  }else{
+    pushshift_url = paste("https://api.pushshift.io/reddit/search/submission/?",
+                          "before=",
+                          paste0(to),
+                          "&after=",
+                          paste0(from),
+                          "&size=",nposts,
+                          "&subreddit=",subreddit,
+                          "&sort_type=",sort_type,
+                          sep="")
+  }
+  tryCatch(
+    {
+      
+      df = fromJSON(URLencode(pushshift_url),flatten = T)$data%>%as.data.frame()
+    },
+    error=function(cond) {
+      message(paste("URL does not seem to exist:", pushshift_url))
+      message("Here's the original error message:")
+      message(cond)
+      return(NA)
+    }
+  )
+  print(nrow(df))
+  
+  if(length(df)<1){
+    return(NA)
+  }
+  if(!is.na(df)&!is.null(df))
+  {
+    if(columns %in% colnames(df)& nrow(df)>0){
+      
+      df%>%select(columns)
+    }
+  }else{
+    print("no data available")
+    NA
+  }
+
+  
+}
+
+#d <- create_redditData("programming")
+
+fetch_subreddits <- function(subreddits,sort_type="created_utc",from=NA,to=NA){
+  print(subreddits)
+  l = data.frame(subreddit = subreddits,
+           sort_type = rep(sort_type,length(subreddits)),
+           from = rep(from,length(subreddits)),
+           to = rep(to,length(subreddits)))
+
+  rds <- list()
+  for (i in 1:length(subreddits)){
+    print(l[i,]$subreddit)
+    rd <- create_redditData(l[i,]$subreddit,l[i,]$sort_type,l[i,]$from,l[i,]$to)
+    Sys.sleep(sample(1:5, 1)/500)
+    rds[[i]]<- rd
+  }
+  bind_rows(rds[!is.na(rds)])
+}
+
+fetch_redditData <- function(from,to,subreddits){
+  d = difftime(from, to,
+               units = c("days"))
+  y <- as.POSIXct(from) +lubridate::days(1:as.numeric(d))
+  times <- format(round(as.numeric(y), 3), digits = 13)
+  to <- times[seq(1,length(times)-1)]
+  from <- times[seq(2,length(times))]
+  rdfs <- list()
+  for (i in 1:length(from)){
+    print(round(i/length(from),3))
+    rd <- fetch_subreddits(
+      subreddits,
+      sort_type = "num_comments",
+      from= from[i],
+      to = to[i]
+    )#%>%
+      #extract_languages()
+    rdfs[[i]] <- rd
+  }
+  bind_rows(rdfs[!is.na(rdfs)])
+  
+}
+
+```
+```{r reddit2, echo=FALSE,warning=FALSE,message=FALSE}
+### TESTING 1 day of Reddit Data
+time1 = "2020-06-01"
+time2 = "2020-06-07"
+sreddits <- c(
+      "LearnProgramming",
+      "AskProgramming",
+      "Programming",
+      "Coding",
+      "datascience",
+      "MachineLearning",
+      "webdev",
+      "Python",
+      "javascript",
+      "golang",
+      "ProgrammerHumor"
+    )
+
+#rd <- fetch_redditData(time1,time2,subreddits=sreddits)
+rd1 <- fread("19_1_rd.csv")
+rd2 <- fread("18_rd.csv")
+rd3 <- fread("17_rd.csv")
+rd <- bind_rows(list(rd1,rd2,rd3))
+
+```
+```{r reddit2, echo=FALSE,warning=FALSE,message=FALSE}
+### TESTING 1 day of Reddit Data
+rd 
+
+```
+
+
+
+
+### Explorative Data Analyis and Visualization
+```{r reddit3, echo=FALSE,warning=FALSE,message=FALSE}
+extract_languages <- function(data){
+  
+    count_prop <- function(text,word){
+      str_count(text,word)/length(strsplit(text," "))
+    }
+    # adding Ruby, C#, Javascript
+    data%>%
+        mutate(text_new = paste(selftext,title,sep=" "))%>%
+        mutate(text_new =  tolower(text_new))%>%
+        mutate(java =count_prop(text_new," java "))%>%
+        mutate(python =count_prop(text_new,"python"))%>%
+        mutate(r =count_prop(text_new," r "))%>%
+        mutate(javascript =count_prop(text_new,"javascript "))%>%
+        mutate(c =(count_prop(text_new," c ")))%>%
+        mutate(cpp = count_prop(text_new,fixed("c++ ")))%>%
+        mutate(csharp =count_prop(text_new," c# "))%>%
+      
+        mutate(ruby =count_prop(text_new," ruby "))%>%
+        mutate(php =count_prop(text_new," php "))%>%
+      
+        mutate(languageprop = java+python+r+javascript+c+csharp+ruby+php)%>%
+        pivot_longer(c('java',
+                       'python',
+                       'r',
+                       'javascript',
+                       'c',
+                       'cpp',
+                       'csharp',
+                       'ruby',
+                       'php
+                       
+        ),
+        names_to = "language",
+        values_to = "values")%>%
+        filter(values!=0)%>%
+        group_by(id)%>%
+        slice_max(values)
+       
+}
+
+lrd <- extract_languages(rd)
+#lrd
+```
+```{r reddit4, echo=FALSE,warning=FALSE,message=FALSE,fig.height=6}
+plot_language_counts_bar <- function(redditData){
+  redditData%>%
+    group_by(language)%>%
+    summarise(N =n())%>%
+    ggplot(aes(x=reorder(language,-N),y=N))+
+       geom_col(fill='#FF5700',alpha=0.7)+
+       labs(title="Total number of posts per language",
+            y = "Number of posts",
+            x = "Programming Language"
+            )+
+    theme_bw()+
+    theme(axis.text.x = element_text(angle = 90))
+  
+  #, scales="free")  
+}
+plot_language_counts_bar(lrd)
+```
+```{r reddit5, echo=FALSE,warning=FALSE,message=FALSE,fig.height=6}
+plot_language_comments_bar1 <- function(redditData){ 
+redditData%>%
+    group_by(language)%>%
+    summarise(
+      comments = sum(num_comments)/n())%>%
+    ggplot(aes(x=reorder(language,-comments),y=comments))+
+       geom_col(fill='#FF5700',alpha=0.7)+
+       labs(title="Total number of comments per post for all languages",
+            y = "Number of comments",
+            x = "Programming Language"
+            )+
+    theme_bw()+
+    theme(axis.text.x = element_text(angle = 90))
+}
+plot_language_comments_bar1(lrd)
+
+```
+
+```{r reddit5, echo=FALSE,warning=FALSE,message=FALSE,fig.height=6}
+plot_language_comments_bar2 <- function(redditData){
+  redditData%>%
+    group_by(language,subreddit)%>%
+    summarise(
+      comments = sum(num_comments)/n())%>%
+    ggplot(aes(x=reorder(language,-comments),y=comments))+
+       geom_col(fill='#FF5700',alpha=0.7)+
+       labs(title="Total number of comments per post for all languages and subreddits",
+            y = "Number of comments",
+            x = "Programming Language"
+            )+
+       facet_wrap(vars(subreddit))+
+    theme_bw()+
+    theme(axis.text.x = element_text(angle = 90))
+  
+  #, scales="free")  
+}
+
+
+#p <- 
+plot_language_comments_bar2(lrd)
+#ggplotly(p)
+```
+```{r reddit6, echo=FALSE,warning=FALSE,message=FALSE,fig.height=6}
+
+library(stats)
+
+ma <- function(x, n = 5){stats::filter(x, rep(1 / n, n), sides = 2)}
+lrd%>%
+  mutate(date = as.POSIXct(created_utc, origin="1970-01-01"))%>%
+  group_by(language)%>%
+  #summarise(comments = sum(num_comments))%>%
+  #ungroup()%>%
+  summarise(comments = ma(num_comments,30),date=date)%>%
+
+  ggplot(aes(x=date,y=comments))+
+    geom_line(color='#FF5700',alpha=0.7)+
+    geom_smooth()+#method="lm")+
+    facet_wrap(vars(language),scales='free')+
+    theme_bw()
+
+```
+
+### Topic Modeling - Reddit
+
+
+
+### Shiny application
+- Using shiny as a tool for interactive exploration of the data set
+  - Sliders for selecting a time range of interest
+  - Checkboxes or Dropdown menus to select different programming languages
+  - Dropdown to visualize wordcloud on different clusters
+  - Further enhancements based on data visualisation
+- Bonus: Shiny offers the opportunity of refreshing the data sets on a web page making it possible to get new insights everyday
