@@ -245,10 +245,12 @@ sreddits <- c(
     )
 
 #rd <- fetch_redditData(time1,time2,subreddits=sreddits)
-rd1 <- fread("19_1_rd.csv")
-rd2 <- fread("18_rd.csv")
-rd3 <- fread("17_rd.csv")
-rd <- bind_rows(list(rd1,rd2,rd3))
+rd1 <- fread("20_rd.csv")
+rd2 <- fread("19_1_rd.csv")
+rd3 <- fread("18_rd.csv")
+rd4 <- fread("17_rd.csv")
+rd5 <- fread("2016_rd.csv")
+rd <- bind_rows(list(rd1,rd2,rd3,rd4,rd5))
 
 ```
 ```{r reddit2, echo=FALSE,warning=FALSE,message=FALSE}
@@ -291,7 +293,7 @@ extract_languages <- function(data){
                        'cpp',
                        'csharp',
                        'ruby',
-                       'php
+                       'php'
                        
         ),
         names_to = "language",
@@ -373,16 +375,25 @@ library(stats)
 ma <- function(x, n = 5){stats::filter(x, rep(1 / n, n), sides = 2)}
 lrd%>%
   mutate(date = as.POSIXct(created_utc, origin="1970-01-01"))%>%
+  
   group_by(language)%>%
   #summarise(comments = sum(num_comments))%>%
   #ungroup()%>%
-  summarise(comments = ma(num_comments,30),date=date)%>%
+  summarise(comments = cut(num_comments,100),date=date)%>%#ma(num_comments,30),date=date)%>%
 
   ggplot(aes(x=date,y=comments))+
     geom_line(color='#FF5700',alpha=0.7)+
     geom_smooth()+#method="lm")+
     facet_wrap(vars(language),scales='free')+
     theme_bw()
+
+lrd%>%
+  mutate(date = as.POSIXct(created_utc, origin="1970-01-01"))%>%
+  
+  group_by(language)%>%
+  #summarise(comments = sum(num_comments))%>%
+  #ungroup()%>%
+  summarise(comments = cut_interval(date,100),date=date)
 
 ```
 
