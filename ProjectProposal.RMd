@@ -65,16 +65,34 @@ The objective of our project is to find a correlation between the different para
 
 ## Related Work
 
+- The growth of R programming language blog by stackoverflow (Link)
+- The growth of Python programming language blog by stackoverflow (Link)
+
+The above 2 blogs are a very detailed analysis of how the popularity of programming languages like R and Python grew with time. It has a very intuitive and analytical approach and also gives us data analysis results via usage of meaningful curves which show how questions related to programming languages have been viewed or in which sectors of industry or which domain they have influenced more with a clear comparative analysis. They also give us insights into which packages of a programming language has been used more or even future predictive analysis of how the usage of the programming language will be in the near future.
+ 
+- The PYPL indexing / TIOBE indexing for programming language (Link, Link)
+- The PYPL indexing for programming languages is based on google trends of how often problems , questions and queries are made related to certain programming languages and it also has a wonderful dynamic visualisation for easy comparison of the changing trends.
+The TIOBE indexing is also another related work which analyses count of web pages involving the programming keywords to decide their popularity and changing trend.
+
+
 ## Research Questions
 
+* Can we decide which topic/language a certain post is about?
 
-- Can we decide which topic/language a certain post is about?
-- How do number of upvotes, comments and number of posts correlate to popularity?
-- How does the popularity of programming languages change over time?
-- Can we predict the popularity of programming languages in the future?
-- How do the two platforms compare based on programming languages?
+The idea is to utilise different features of the data and to decide which features would be best choice for deciding the topic/language a certain post is about. We have several features utilised such as the tags(in case of stackoverflow) , lexical analysis and also to which subreddits they belong to and how often they occur.
+* How do number of upvotes, comments and number of posts correlate to popularity?
 
+	As an extension to the previous research question , here we would try to find a correlation between the various features like upvotes , comments and post count to give a more clear picture , about which feature has impacted more or is responsible more in impacting or influencing our results from the analysis.
+* How does the popularity of programming languages change over time?
 
+	For answering this our main aim would be to obtain visualisations of the data over the time period of 5 years(2016-2021,present) and then do an analytical as well as visual analysis to conclude how in past the trends have varied and if there is any specific event in the technology universe which has fuelled this.
+* Can we predict the popularity of programming languages in the future?
+
+	The idea would be to use forecasting and predictive techniques and see how in near future the popularity or trends in programming language would look like. One important point to consider here would be that the prediction on both the platforms are made using similar or atleast semantically similar features so that the comparison is fair. 
+	
+* How do the two platforms compare based on programming languages?
+
+This would be our final research question and would be elaborately analysed and explored based on various different factors and analysis. The challenge here would be to keep the features used and the methods use as common as possible so that the comparison is fair and we get a detailed picture of why and how a certain platform is better.
 
 # Datasets
 
@@ -83,22 +101,12 @@ For the Reddit posts the plan is to use an API from Reddit to get data sets for 
 For Stackoverflow we plan to use the datadumps available on internet archive and then merge them and further preprocess to use it for analysis, visualisation and prediction tasks.
 
 
-# Design overview
-### Data Preprocessing - Reddit Data
-- Stackoverflow Data Dumps : 
-  https://archive.org/download/stackexchange
-  - Using the different stackoverflow dumps  ( posts, tags, users,         votes,posthistory,comments etc.)
-  - Merging this separate data dumps to get relevant data and make it      comparable with Reddit data before using it for our analysis and       visualisation
-- Reddit Data :
-  - Fetching the Reddit data from the pushshift API 
-  - Finding relevant subreddits
-  - Selecting the features that should be used 
-  - Textpreprocessing:
-    - Removing punctuation and stopwords
-    - Stemming
-    - Vectorization
+## Data Processing - Reddit Data
 
-```{r reddit1, echo=FALSE,warning=FALSE,message=FALSE}
+### Fetching the data from the API
+some text
+
+```{r reddit_scraping, echo=FALSE,warning=FALSE,message=FALSE}
 library(tm)
 library(data.table)
 library(topicmodels)
@@ -130,10 +138,7 @@ create_redditData <- function(subreddit,
                "created_utc",
                #"upvote_ratio",
                "score",
-               "num_comments"
-    
-    
-  )
+               "num_comments")
   df = NA
   if(is.na(from) | is.na(to)){
     pushshift_url = paste("https://api.pushshift.io/reddit/search/submission/?",
@@ -164,8 +169,6 @@ create_redditData <- function(subreddit,
       return(NA)
     }
   )
-  print(nrow(df))
-  
   if(length(df)<1){
     return(NA)
   }
@@ -182,7 +185,11 @@ create_redditData <- function(subreddit,
 
   
 }
+```
 
+## Fetching different subreddits
+explain function
+```{r reddit_scraping_subreddits, echo=TRUE,warning=FALSE,message=FALSE}
 #d <- create_redditData("programming")
 
 fetch_subreddits <- function(subreddits,sort_type="created_utc",from=NA,to=NA){
@@ -201,7 +208,9 @@ fetch_subreddits <- function(subreddits,sort_type="created_utc",from=NA,to=NA){
   }
   bind_rows(rds[!is.na(rds)])
 }
-
+```
+explain function
+```{r reddit_scraping_subreddits2,  echo=TRUE,warning=FALSE,message=FALSE}
 fetch_redditData <- function(from,to,subreddits){
   d = difftime(from, to,
                units = c("days"))
@@ -226,7 +235,11 @@ fetch_redditData <- function(from,to,subreddits){
 }
 
 ```
-```{r reddit2, echo=FALSE,warning=FALSE,message=FALSE}
+
+### How to get the reddit data?
+explain
+
+```{r reddit_scraping_subreddits3, echo=TRUE,warning=FALSE,message=FALSE}
 ### TESTING 1 day of Reddit Data
 time1 = "2020-06-01"
 time2 = "2020-06-07"
@@ -245,25 +258,24 @@ sreddits <- c(
     )
 
 #rd <- fetch_redditData(time1,time2,subreddits=sreddits)
-rd1 <- fread("20_rd.csv")
-rd2 <- fread("19_1_rd.csv")
-rd3 <- fread("18_rd.csv")
-rd4 <- fread("17_rd.csv")
-rd5 <- fread("2016_rd.csv")
-rd <- bind_rows(list(rd1,rd2,rd3,rd4,rd5))
 
+# instead of calling the function we load already processed data
+rd <- readRDS("reddit_data16-20.Rds")%>%
+  select(!c("values","language"))
+rd
 ```
-```{r reddit2, echo=FALSE,warning=FALSE,message=FALSE}
-### TESTING 1 day of Reddit Data
-rd 
+### Remove duplicates
+
+```{r reddit_scraping_subreddits4, echo=FALSE,warning=FALSE,message=FALSE}
 
 ```
 
 
+### Extracting languages
 
+explain
 
-### Explorative Data Analyis and Visualization
-```{r reddit3, echo=FALSE,warning=FALSE,message=FALSE}
+```{r reddit_extract_languages, echo=TRUE,warning=FALSE,message=FALSE}
 extract_languages <- function(data){
   
     count_prop <- function(text,word){
@@ -275,15 +287,14 @@ extract_languages <- function(data){
         mutate(text_new =  tolower(text_new))%>%
         mutate(java =count_prop(text_new," java "))%>%
         mutate(python =count_prop(text_new,"python"))%>%
-        mutate(r =count_prop(text_new," r "))%>%
+        mutate(r = count_prop(text_new," r "))%>%
         mutate(javascript =count_prop(text_new,"javascript "))%>%
         mutate(c =(count_prop(text_new," c ")))%>%
         mutate(cpp = count_prop(text_new,fixed("c++ ")))%>%
         mutate(csharp =count_prop(text_new," c# "))%>%
-      
         mutate(ruby =count_prop(text_new," ruby "))%>%
         mutate(php =count_prop(text_new," php "))%>%
-      
+
         mutate(languageprop = java+python+r+javascript+c+csharp+ruby+php)%>%
         pivot_longer(c('java',
                        'python',
@@ -294,7 +305,7 @@ extract_languages <- function(data){
                        'csharp',
                        'ruby',
                        'php'
-                       
+
         ),
         names_to = "language",
         values_to = "values")%>%
@@ -305,9 +316,19 @@ extract_languages <- function(data){
 }
 
 lrd <- extract_languages(rd)
-#lrd
+lrd
 ```
-```{r reddit4, echo=FALSE,warning=FALSE,message=FALSE,fig.height=6}
+
+
+
+
+
+### Explorative Data Analyis and Visualization
+
+Total number of posts per language
+1-2 sentences about what we can observe
+
+```{r reddit_counts_bar, echo=TRUE,warning=FALSE,message=FALSE,fig.height=6}
 plot_language_counts_bar <- function(redditData){
   redditData%>%
     group_by(language)%>%
@@ -320,12 +341,16 @@ plot_language_counts_bar <- function(redditData){
             )+
     theme_bw()+
     theme(axis.text.x = element_text(angle = 90))
-  
-  #, scales="free")  
 }
 plot_language_counts_bar(lrd)
 ```
-```{r reddit5, echo=FALSE,warning=FALSE,message=FALSE,fig.height=6}
+
+
+
+### Average number of comments
+1-2 sentences
+
+```{r reddit_avg_comments, echo=TRUE,warning=FALSE,message=FALSE,fig.height=6}
 plot_language_comments_bar1 <- function(redditData){ 
 redditData%>%
     group_by(language)%>%
@@ -333,7 +358,7 @@ redditData%>%
       comments = sum(num_comments)/n())%>%
     ggplot(aes(x=reorder(language,-comments),y=comments))+
        geom_col(fill='#FF5700',alpha=0.7)+
-       labs(title="Total number of comments per post for all languages",
+       labs(title="Average number of comments per post for all languages",
             y = "Number of comments",
             x = "Programming Language"
             )+
@@ -344,7 +369,9 @@ plot_language_comments_bar1(lrd)
 
 ```
 
-```{r reddit5, echo=FALSE,warning=FALSE,message=FALSE,fig.height=6}
+1-2 sentences
+
+```{r reddit_avg_comments_facet, echo=FALSE,warning=FALSE,message=FALSE,fig.height=6}
 plot_language_comments_bar2 <- function(redditData){
   redditData%>%
     group_by(language,subreddit)%>%
@@ -352,7 +379,7 @@ plot_language_comments_bar2 <- function(redditData){
       comments = sum(num_comments)/n())%>%
     ggplot(aes(x=reorder(language,-comments),y=comments))+
        geom_col(fill='#FF5700',alpha=0.7)+
-       labs(title="Total number of comments per post for all languages and subreddits",
+       labs(title="Average number of comments per post for all languages and subreddits",
             y = "Number of comments",
             x = "Programming Language"
             )+
@@ -363,41 +390,193 @@ plot_language_comments_bar2 <- function(redditData){
   #, scales="free")  
 }
 
-
-#p <- 
 plot_language_comments_bar2(lrd)
-#ggplotly(p)
-```
-```{r reddit6, echo=FALSE,warning=FALSE,message=FALSE,fig.height=6}
-
-library(stats)
-
-ma <- function(x, n = 5){stats::filter(x, rep(1 / n, n), sides = 2)}
-lrd%>%
-  mutate(date = as.POSIXct(created_utc, origin="1970-01-01"))%>%
-  
-  group_by(language)%>%
-  #summarise(comments = sum(num_comments))%>%
-  #ungroup()%>%
-  summarise(comments = cut(num_comments,100),date=date)%>%#ma(num_comments,30),date=date)%>%
-
-  ggplot(aes(x=date,y=comments))+
-    geom_line(color='#FF5700',alpha=0.7)+
-    geom_smooth()+#method="lm")+
-    facet_wrap(vars(language),scales='free')+
-    theme_bw()
-
-lrd%>%
-  mutate(date = as.POSIXct(created_utc, origin="1970-01-01"))%>%
-  
-  group_by(language)%>%
-  #summarise(comments = sum(num_comments))%>%
-  #ungroup()%>%
-  summarise(comments = cut_interval(date,100),date=date)
 
 ```
+
+
+### Text length
+
+### Word clouds for each language
+
+### Trends in Programming Languages
+
+```{r reddit_trends, echo=FALSE,warning=FALSE,message=FALSE,fig.height=6}
+# 
+# library(stats)
+# 
+# ma <- function(x, n = 5){stats::filter(x, rep(1 / n, n), sides = 2)}
+# lrd%>%
+#   mutate(date = as.POSIXct(created_utc, origin="1970-01-01"))%>%
+#   
+#   group_by(language)%>%
+#   #summarise(comments = sum(num_comments))%>%
+#   #ungroup()%>%
+#   summarise(comments = cut(num_comments,100),date=date)%>%#ma(num_comments,30),date=date)%>%
+# 
+#   ggplot(aes(x=date,y=comments))+
+#     geom_line(color='#FF5700',alpha=0.7)+
+#     geom_smooth()+#method="lm")+
+#     facet_wrap(vars(language),scales='free')+
+#     theme_bw()
+
+```
+
+
+
+
+### Correlation Analysis
+
+```{r reddit_correlation, echo=FALSE,warning=FALSE,message=FALSE}
+
+    count_prop <- function(text,word){
+      str_count(text,word)/length(strsplit(text," "))
+    }
+    # adding Ruby, C#, Javascript
+    ld <- rd%>%
+        mutate(text_new = paste(selftext,title,sep=" "))%>%
+        mutate(text_new =  tolower(text_new))%>%
+        mutate(java =count_prop(text_new," java "))%>%
+        mutate(python =count_prop(text_new,"python"))%>%
+        mutate(r =count_prop(text_new," r "))%>%
+        mutate(javascript =count_prop(text_new,"javascript "))%>%
+        mutate(c =(count_prop(text_new," c ")))%>%
+        mutate(cpp = count_prop(text_new,fixed("c++ ")))%>%
+        mutate(csharp =count_prop(text_new," c# "))%>%
+      
+        mutate(ruby =count_prop(text_new," ruby "))%>%
+        mutate(php =count_prop(text_new," php "))
+
+
+```
+One question that arises when looking at the different languages is how they are correlating. Is it for example likely when a certain post is a reddit post is about c, then it might be also about c++?
+To approach this question we can first have a look at the correlation matrix.
+
+```{r corplot_reddit1, echo=FALSE,warning=FALSE,message=FALSE,fig.height=10,fig.width=10}
+
+library(ggcorrplot)
+cm <- ld %>%
+  select(java,python,r,javascript,c,cpp,csharp,ruby,php)
+M <-cm[,-1] 
+cor(M)
+```
+
+For the visualization of those results we can use a color coded correlation matrix.
+
+```{r corplot_reddit2, echo=FALSE,warning=FALSE,message=FALSE,fig.height=10,fig.width=10}
+
+ggcorrplot(cor(M,method = 'pearson') ,hc.order=T,lab = TRUE,type='lower')
+#library(corrr)
+``` 
+Now we can cross out all the non-significant correlations in order to check if those correlations are actually statistically sound.
+
+```{r corplot_reddit3, echo=FALSE,warning=FALSE,message=FALSE,fig.height=10,fig.width=10}
+p.mat <- cor_pmat(M)
+ggcorrplot(cor(M,method = 'pearson'), p.mat = p.mat ,hc.order=T,type='lower',lab=T)
+
+``` 
+Another way to show the correlation is with a graph-based approach. In this network plot it gets more clear how those different programming languages actually correlate.
+
+```{r corplot_reddit4, echo=FALSE,warning=FALSE,message=FALSE,fig.height=10,fig.width=10}
+library(corrr)
+M%>%correlate(method="pearson")%>%
+  network_plot(min_cor=0,curved=T, colors = c("red", "green"))#+
+  #theme_gray()
+
+```
+
+
 
 ### Topic Modeling - Reddit
+
+
+
+
+
+```{r topic_modeling1, echo=FALSE,warning=FALSE,message=FALSE,fig.height=6}
+
+lda_topic_model <- function(redditData,K){
+  text <- redditData$selftext
+  df <- data.frame(text = text,doc_id = seq(1,length(text)))%>%na.omit()
+  corpus <- VCorpus(DataframeSource(df))
+  #tdm <- TermDocumentMatrix(corpus)
+  
+  english_stopwords <- readLines("https://slcladal.github.io/resources/stopwords_en.txt", encoding = "UTF-8")
+  # Preprocessing chain
+  #message("transform to lower")
+  #processedCorpus <- tm_map(corpus, content_transformer(tolower))
+  message("remove stopwords")
+  processedCorpus <- tm_map(processedCorpus, removeWords, english_stopwords)
+  #message("remove punctuation")
+  #processedCorpus <- tm_map(processedCorpus, removePunctuation, preserve_intra_word_dashes = TRUE)
+  message("remove numbers")
+  processedCorpus <- tm_map(processedCorpus, removeNumbers)
+  #message("stem document")
+  #processedCorpus <- tm_map(processedCorpus, stemDocument, language = "en")
+  message("strip whitespace")
+  processedCorpus <- tm_map(processedCorpus, stripWhitespace)
+  message("create DTM")
+  minimumFrequency <- 15
+  
+  DTM <- DocumentTermMatrix(processedCorpus, control = list(bounds = list(global = c(minimumFrequency, Inf))))
+  #rowTotals <- apply(DTM , 2, sum) #Find the sum of words in each Document
+  #dtm.new   <- DTM[rowTotals> 0, ]           #remove all docs without words
+  #print(dtm.new)
+  #LDA(dtm.new,K)
+  sel_idx <- slam::row_sums(DTM) > 0
+  DTM <- DTM[sel_idx, ]
+  
+  message("create LDA model")
+  m = model = LDA(DTM,K)
+  list(dtm = DTM,model = m,corpus = processedCorpus)
+}
+
+lda_model <- lda_topic_model(rd,10)
+lda_model$model
+# ntopics <- FindTopicsNumber(
+#   lda_model$dtm,
+#   topics = seq(from = 10, to = 50, by = 10),
+#   metrics = c("Griffiths2004", "CaoJuan2009", "Arun2010", "Deveaud2014"),
+#   method = "Gibbs",
+#   control = list(seed = 77),
+#   mc.cores = 2L,
+#   verbose = TRUE
+# )
+# ntopics
+```
+### Optimal number 
+```{r topic_modeling2, echo=FALSE,warning=FALSE,message=FALSE,fig.height=6}
+
+
+```
+
+#### Frequent words
+
+
+```{r topic_modeling, echo=FALSE,warning=FALSE,message=FALSE,fig.height=6}
+
+ap_topics <- tidy(lda_model$model, matrix = "beta")
+
+plot_frequent_topics <- function(ap_topics,n=20){
+  ap_top_terms <- ap_topics %>%
+    group_by(topic) %>%
+    slice_max(beta, n =n) %>% 
+    ungroup() %>%
+    arrange(topic, -beta)
+  
+  ap_top_terms %>%
+    mutate(term = reorder_within(term, beta, topic)) %>%
+    ggplot(aes(beta, term, fill = factor(topic))) +
+    geom_col(show.legend = FALSE) +
+    facet_wrap(~ topic, scales = "free") +
+    scale_y_reordered()
+  
+}
+plot_frequent_topics(ap_topics)
+```
+#### Word clouds
+
+### Forcasting - Reddit
 
 
 
