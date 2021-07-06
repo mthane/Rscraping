@@ -14,9 +14,9 @@ In our project :
 
 Dataset : [DropBox](https://www.dropbox.com/sh/qxgrwp2wyae8i3x/AADNAv3jR6gOaKonMNWt94Kia?dl=0)
 
-Website : [Shiny App] (https://www.dropbox.com/sh/qxgrwp2wyae8i3x/AADNAv3jR6gOaKonMNWt94Kia?dl=0)
+Website : [Shiny App](https://www.dropbox.com/sh/qxgrwp2wyae8i3x/AADNAv3jR6gOaKonMNWt94Kia?dl=0)
 
-Screencast : [Youtube] (https://www.youtube.com/watch?v=0_W7ekFKxPA)
+Screencast : [Youtube](https://www.youtube.com/watch?v=0_W7ekFKxPA)
 
 R Markdown Process Notebook :
 
