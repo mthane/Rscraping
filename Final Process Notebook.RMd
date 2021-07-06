@@ -1,0 +1,1085 @@
+---
+title: "Trends in Programming Language Popularity R Markdown Process Notebook"
+author: "by Indrani Sarkar ,Indranil Maji, Michael Thane, Sharanya Hunasamaranahalli Thotadarya"
+date: "6th July,2021"
+
+output:
+  rmarkdown::html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 3
+    theme: journal
+  pdf_document: default
+
+---
+[Github Repository Link](https://github.com/mthane/Rscraping)
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(kableExtra)
+library(dplyr)
+library(jsonlite)
+library(wordcloud) 
+library(tm)
+library(vistime)
+library(stringr)
+library(forecast)
+memory.limit(9999999999)
+
+```
+
+
+
+
+# Overview and Motivation
+
+Reddit and Stack Overflow are two community based websites which are used heavily by people all across the world. Reddit is known as the “Front Page of the Internet” and is a popular forum especially among young people where users can post anything and everything.It has a large international community and a lot of programming related content. Reddit is a place for all possible topics of discussion whereas Stack Overflow is centered around programming languages, ideas and discussions surrounding it. Stack overflow is more of a question answer based system. Reddit is mostly a post and comments based system. Both of these websites are great resources for coders and programmers around the globe. 
+
+We want to use data from the Reddit forum in order to better understand the popularity of Programming languages among Reddit users. Additionally, we want to compare it to data from the Stack Overflow forum. We want to evaluate what programming languages are being discussed in both forums and compare how their usage or popularity has changed over time. For reaching our aim we want to use Visualization and Machine Learning methods based on the quantification of different factors like post count, number of comments, etc on both the platforms.
+
+Since both platforms are very popular and most sought after and contain a lot of discussion related to programming, it would be good to study and analyze the trend of how users have been using some of the topmost programming languages. The change of trend would help us in understanding  how the popularity of programming language has changed over time and also we could then predict which programming language would be center of discussion or most queried of in these two platforms in near future. 
+
+
+## Project Objective 
+The objective of our project is to find a correlation between the different parameters of  questions or posts in these platforms and try to calculate how the popularity of programming language has changed over time. And then further we would like to predict what would be the trends of these programming languages in near future. We could use this information to explore various topics which are most related with this programming languages. We would try to answer the following research questions :
+
+# Initial Questions
+
+* Can we decide which topic/language a certain post is about?
+
+ The idea is to utilize different features of the data and to decide which features would be best choice for deciding the exploring the topics and detecting the programming language a certain post is about. We have several features utilized such as the tags (in case of Stack Overflow), body of the posts (reddit and stack overflow), lexical analysis and also to which subreddits they belong to and how often they occur.
+
+* How do number of upvotes, comments and number of posts correlate to popularity?
+
+	As an extension to the previous research question, here we would try to find a correlation between the various features like upvotes, comments and post count to give a more clear picture , about which feature has more impacted our results from the analysis.
+	
+* How does the popularity of programming languages change over time?
+
+	For answering this our main aim would be to obtain visualizations of the data over the time period of 5 years (2016-2020) and then based on analysis of those visualizations we deduce the variations in the past trends.
+	
+* Can we predict the popularity of programming languages in the future?
+
+	The idea would be to use forecasting and predictive techniques and see how in near future the popularity or trends in programming language would look like. One important point to consider here would be that the prediction on both the platforms are made using similar or atleast semantically similar features so that the comparison is fair. 
+	
+* How do the two platforms compare based on programming languages?
+
+This would be our final research question and would be elaborately analysed and explored based on various different factors and analysis. The challenge here would be to keep the features used and the methods use as common as possible so that the comparison is fair and we get a detailed picture of why and how a certain platform is better.
+
+# Related Work
+
+- The growth of R programming language blog by stackoverflow
+- The growth of Python programming language blog by stackoverflow
+
+The above 2 blogs are a very detailed analysis of how the popularity of programming languages like R and Python grew with time. It has a very intuitive and analytical approach and also gives us data analysis results via usage of meaningful curves which show how questions related to programming languages have been viewed or in which sectors of industry or which domain they have influenced more with a clear comparative analysis. They also give us insights into which packages of a programming language has been used more or even future predictive analysis of how the usage of the programming language will be in the near future.
+ 
+- The PYPL indexing / TIOBE indexing for programming language 
+- The PYPL indexing for programming languages is based on google trends of how often problems , questions and queries are made related to certain programming languages and it also has a wonderful dynamic visualisation for easy comparison of the changing trends.
+The TIOBE indexing is also another related work which analyses count of web pages involving the programming keywords to decide their popularity and changing trend.
+
+# Data
+
+For the Reddit posts, we use an API from Reddit to scrape the data for a certain time range and a number of specific Subreddits. The choice of the Subreddits is crucial for the quality and expressiveness of our data and will be based on prior research on interesting Subreddits pertaining to programming. The dataset is comprised of columns such as Subreddit, title, text, upvotes and various other metadata.
+
+For StackOverflow, we plan to use the data dumps available on internet archive and then merge them and further preprocess to use it for analysis, visualization and prediction tasks.
+
+
+## Data Processing - Reddit Data
+
+### Fetching the data from the API
+
+For Reddit, we started with retrieving the data from the Reddit website using an API provided by Reddit themselves. We extracted data with conditions on the date when the questions were created on the platform which was obtained as a JSON object. Later we converted this to a dataframe for ease of data handling. The code below demonstrates how we utilised the API for sampling data from Reddit. One important aspect which we followed while obtaining data was that we tried sampling 100 questions per day from the entire website and later filtered it. Since the original data would be very big , this approach was followed to keep the analysis feasible and simpler.
+
+
+```{r reddit_scraping, echo=FALSE,warning=FALSE,message=FALSE}
+library(tm)
+library(data.table)
+library(topicmodels)
+library(jsonlite)
+library(dplyr)
+library(ggplot2)
+library(stringr)
+library(tidyverse)
+library(data.table)
+library(plotly)
+library(tidytext)
+library(wordcloud)
+library(lubridate)
+library(RCurl)
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+
+create_redditData <- function(subreddit,
+                              nposts=100,
+                              from=NA,
+                              to=NA,
+                              sort_type="created_utc"){
+  
+  columns <- c("subreddit",
+               "title",
+               "author",
+               "selftext",
+               "id",
+               "domain",
+               "url",
+               "created_utc",
+               #"upvote_ratio",
+               "score",
+               "num_comments")
+  df = NA
+  if(is.na(from) | is.na(to)){
+    pushshift_url = paste("https://api.pushshift.io/reddit/search/submission/?",
+                          "&size=",nposts,
+                          "&subreddit=",subreddit,
+                          "&sort_type=",sort_type,
+                          sep="")
+  }else{
+    pushshift_url = paste("https://api.pushshift.io/reddit/search/submission/?",
+                          "before=",
+                          paste0(to),
+                          "&after=",
+                          paste0(from),
+                          "&size=",nposts,
+                          "&subreddit=",subreddit,
+                          "&sort_type=",sort_type,
+                          sep="")
+  }
+  tryCatch(
+    {
+      
+      df = fromJSON(URLencode(pushshift_url),flatten = T)$data%>%as.data.frame()
+    },
+    error=function(cond) {
+      message(paste("URL does not seem to exist:", pushshift_url))
+      message("Here's the original error message:")
+      message(cond)
+      return(NA)
+    }
+  )
+  if(length(df)<1){
+    return(NA)
+  }
+  if(!is.na(df)&!is.null(df))
+  {
+    if(columns %in% colnames(df)& nrow(df)>0){
+      
+      df%>%select(columns)
+    }
+  }else{
+    print("no data available")
+    NA
+  }
+
+  
+}
+```
+
+### Fetching different subreddits
+Our next goal was to obtain data from different subreddits. So we created separate functions to obtain the subreddits first based on their names. It was important to breakdown the approach in terms of obtaining subreddit and then , utilizing it along with date range to obtain the data.
+```{r reddit_scraping_subreddits, echo=TRUE,warning=FALSE,message=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+#d <- create_redditData("programming")
+
+fetch_subreddits <- function(subreddits,sort_type="created_utc",from=NA,to=NA){
+  print(subreddits)
+  l = data.frame(subreddit = subreddits,
+           sort_type = rep(sort_type,length(subreddits)),
+           from = rep(from,length(subreddits)),
+           to = rep(to,length(subreddits)))
+
+  rds <- list()
+  for (i in 1:length(subreddits)){
+    print(l[i,]$subreddit)
+    rd <- create_redditData(l[i,]$subreddit,l[i,]$sort_type,l[i,]$from,l[i,]$to)
+    Sys.sleep(sample(1:5, 1)/500)
+    rds[[i]]<- rd
+  }
+  bind_rows(rds[!is.na(rds)])
+}
+```
+The following function combined the results of above function to use the subreddits names and the time range to get the data.
+```{r reddit_scraping_subreddits2,  echo=TRUE,warning=FALSE,message=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+fetch_redditData <- function(from,to,subreddits){
+  d = difftime(from, to,
+               units = c("days"))
+  y <- as.POSIXct(from) +lubridate::days(1:as.numeric(d))
+  times <- format(round(as.numeric(y), 3), digits = 13)
+  to <- times[seq(1,length(times)-1)]
+  from <- times[seq(2,length(times))]
+  rdfs <- list()
+  for (i in 1:length(from)){
+    print(round(i/length(from),3))
+    rd <- fetch_subreddits(
+      subreddits,
+      sort_type = "num_comments",
+      from= from[i],
+      to = to[i]
+    )#%>%
+      #extract_languages()
+    rdfs[[i]] <- rd
+  }
+  bind_rows(rdfs[!is.na(rdfs)])
+  
+}
+
+```
+
+### How to get the reddit data?
+We combined all the above functions to generate our data and then created a .rds file for faster access for data analysis. Below is a sample of how the fetched data would look like.
+
+```{r reddit_scraping_subreddits3, echo=TRUE,warning=FALSE,message=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+### TESTING 1 day of Reddit Data
+time1 = "2020-06-01"
+time2 = "2020-06-07"
+sreddits <- c(
+      "LearnProgramming",
+      "AskProgramming",
+      "Programming",
+      "Coding",
+      "datascience",
+      "MachineLearning",
+      "webdev",
+      "Python",
+      "javascript",
+      "golang",
+      "ProgrammerHumor"
+    )
+
+#rd <- fetch_redditData(time1,time2,subreddits=sreddits)
+
+# instead of calling the function we load already processed data
+rd <- readRDS("reddit_data16-20.Rds")%>%
+  select(!c("values","language"))
+
+kable(head(rd,5), "html") %>% kable_styling("striped") %>% scroll_box(width = "100%")
+```
+
+
+### Extracting languages
+
+To map which questions referred to which programming languages we calculated the proportion of the names of those programming languages occurring in the whole text body of the question. This would definitely generate a certain amount of bias in the way how we are trying to assign the questions to respective programming languages but Reddit does not have a facility like Tags unlike stackoverflow , hence this method was chosen to determine the programming language to which a certain question belonged too.
+
+```{r reddit_extract_languages, echo=TRUE,warning=FALSE,message=FALSE , cache=TRUE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+extract_languages <- function(data){
+  
+    count_prop <- function(text,word){
+      str_count(text,word)/length(strsplit(text," "))
+    }
+    # adding Ruby, C#, Javascript
+    data%>%
+        mutate(text_new = paste(selftext,title,sep=" "))%>%
+        mutate(text_new =  tolower(text_new))%>%
+        mutate(java =count_prop(text_new," java "))%>%
+        mutate(python =count_prop(text_new,"python"))%>%
+        mutate(r = count_prop(text_new," r "))%>%
+        mutate(javascript =count_prop(text_new,"javascript "))%>%
+        mutate(c =(count_prop(text_new," c ")))%>%
+        mutate(cpp = count_prop(text_new,fixed("c++ ")))%>%
+       
+        mutate(ruby =count_prop(text_new," ruby "))%>%
+        mutate(php =count_prop(text_new," php "))%>%
+
+        mutate(languageprop = java+python+r+javascript+c+ruby+php)%>%
+        pivot_longer(c('java',
+                       'python',
+                       'r',
+                       'javascript',
+                       'c',
+                       'cpp',
+                       
+                       'ruby',
+                       'php'
+
+        ),
+        names_to = "language",
+        values_to = "values")%>%
+        filter(values!=0)%>%
+        group_by(id)%>%
+        slice_max(values)
+       
+}
+
+lrd <- extract_languages(rd)
+kable(head(lrd,5), "html") %>% kable_styling("striped") %>% scroll_box(width = "100%")
+```
+
+## Data Processing - StackOverflow Data
+For constructing the StackOverflow dataset, we used the query system offered by stack exchange and developed a PLSQL procedure to obtain the dataset similar to Reddit. Top 100 posts for each day of every month for the entire time range between 2016-2020 were extracted and then filtered out based on the choice of programming languages, which we based our analysis on. The original data for StackOverflow was huge (~ 30GB) and since our work was focused only on learning the change in popularity of programming languages, just accessing the posts table from StackOverflow database was sufficient for our problem statement. 
+After obtaining the data in .csv format, we merged it and then converted it to .rds format same as Reddit for faster access during the analysis.
+### Converting to .rds for faster read access
+```{r stackoveflowrds , cache=TRUE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+stack_data_final <- read.csv("StackOverflow2016-2021_Final.csv")
+saveRDS(stack_data_final,'stack_data_final.rds')
+
+stack_data <- readRDS('stack_data_final.rds')
+```
+The data obtained was then pre-processed for retaining only the data related to the target programming languages. Below is a glimpse of how the data looks like. We have also used the tags for each post to determine the programming language to which a post belongs to. Certain questions have more than one tag, but we have tried to answer that later in our work during correlation analysis.
+### Preprocessing Stackoverflow Data
+```{r stackoverflowpreprocess, cache=TRUE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+stack_data<-stack_data %>% mutate(prog = case_when(str_detect(Tags, fixed("<c++>")) ~ "CPP", str_detect(Tags, "<python>") ~ "Python",str_detect(Tags, "<r>") ~ "R",str_detect(Tags, "<java>") ~ "Java", str_detect(Tags, "<javascript>")~ "JavaScript",str_detect(Tags, "<c>")~ "C",str_detect(Tags, "<ruby>")~ "Ruby",str_detect(Tags, "<php>")~ "PHP",TRUE ~ Tags)) %>% filter(prog %in% c("Python","R", "Java","JavaScript", "C","CPP","Ruby","PHP")) 
+stack_data<-stack_data %>% mutate(year = year(CreationDate)) %>% filter (year %in% c("2016","2017","2018","2019","2020"))
+
+
+kable(head(stack_data,2), "html") %>% kable_styling("striped") %>% scroll_box(width = "100%")
+```
+
+
+# Explorative Data Analysis
+
+## Exploring Reddit Dataset
+
+We compared the total number of posts for individual languages across the entire time period in the data. 
+
+```{r reddit_counts_bar, echo=TRUE,warning=FALSE,message=FALSE,fig.height=6}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+plot_language_counts_bar <- function(redditData){
+  redditData%>%
+    group_by(language)%>%
+    summarise(N =n())%>%
+    ggplot(aes(x=reorder(language,-N),y=N))+
+       geom_col(fill='#FF5700',alpha=0.7)+
+       labs(title="Total number of posts per language",
+            y = "Number of posts",
+            x = "Programming Language"
+            )+
+    theme_bw()+
+    theme(axis.text.x = element_text(angle = 90))
+}
+plot_language_counts_bar(lrd)
+```
+
+We observed that python had maximum number of questions asked on Reddit followed by Javascript , Java and then C++, C and others. This gives us an initial intuition that Python may be one of the widely explored languages in the recent past due to its various advantages like use of indentation , dynamic name resolution and ease of writing. One possible reason might also be that Python came into existence much later than C or C++ and has more wider usage than Java or Javascript. It is recently extensively used in data science and analysis to and the topic of data science has been very popular in the recent years.
+
+
+
+### Average number of comments
+Average number of comments plotted for different languages.
+```{r reddit_avg_comments, echo=TRUE,warning=FALSE,message=FALSE,fig.height=6}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+plot_language_comments_bar1 <- function(redditData){ 
+redditData%>%
+    group_by(language)%>%
+    summarise(
+      comments = sum(num_comments)/n())%>%
+    ggplot(aes(x=reorder(language,-comments),y=comments))+
+       geom_col(fill='#FF5700',alpha=0.7)+
+       labs(title="Average number of comments per post for all languages",
+            y = "Number of comments",
+            x = "Programming Language"
+            )+
+    theme_bw()+
+    theme(axis.text.x = element_text(angle = 90))
+}
+plot_language_comments_bar1(lrd)
+
+```
+
+The number of comments would be a very good feature for analyzing the extent to which the community discusses problems and solutions related to different programming languages. Here we can observe that for most of the programming languages , the average comments are almost similar but C and Ruby has particularly higher values indicating that there has been extensive discussions in Reddit for them. It might indicate that these languages might be more popular but since we consider the entire data here , there are cases where comments are more in a single question rather spread across various questions. Hence it might be difficult to reason with the statistics on the number of comments.
+
+### Average number of comments per post for all languages and subreddits
+ We plotted the average number of comments per post for different languages also for different subreddits.
+
+```{r reddit_avg_comments_facet, echo=FALSE,warning=FALSE,message=FALSE,fig.height=6}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+plot_language_comments_bar2 <- function(redditData){
+  redditData%>%
+    group_by(language,subreddit)%>%
+    summarise(
+      comments = sum(num_comments)/n())%>%
+    ggplot(aes(x=reorder(language,-comments),y=comments))+
+       geom_col(fill='#FF5700',alpha=0.7)+
+       labs(title="Average number of comments per post for all languages and subreddits",
+            y = "Number of comments",
+            x = "Programming Language"
+            )+
+       facet_wrap(vars(subreddit))+
+    theme_bw()+
+    theme(axis.text.x = element_text(angle = 90))
+  
+  #, scales="free")  
+}
+
+plot_language_comments_bar2(lrd)
+
+```
+
+This analysis was done on a random selection of subreddits just to get an idea of how people create different subreddits and use them for discussing problems and questions related to programming. Surprisingly programmer humor which mostly relates to discussion not related to technical and analytical aspects and mostly humor , jokes and memes have more comments in comparison to the other subreddits which are really focused on problem solving , discussions and great work around for complex scenarios. 
+
+### Text length for different language
+```{r reddit_textlength}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+# text length analysis
+# data$combined <- paste(data$title, " ", data$selftext)
+tlrd<-data.frame(lrd$language)
+tlrd$language <- lrd$language
+names<-("language")
+tlrd$text_length <- nchar(as.character(lrd$text_new))
+ggplot(tlrd, aes(x=language, y=text_length, color=language)) +
+  geom_boxplot(outlier.shape = NA) +
+  scale_y_continuous(limits = quantile(tlrd$text_length, c(0.1, 0.9))) + stat_summary(fun=mean, geom="point", shape=5, size=1)
+
+```
+
+Another interesting study we wanted to do was to see the correlation of the length of text used for describing scenarios and problems related to different programming languages.This would give us an idea , how difficult or easy it is to explain a scenario or problem related to a programming language and that would be one of the reasons for the programming language being not very much in use among the users in relation to the results of the other analysis done previously. PHP has a higher median text_length compared to others , and even R has almost similar median text length. The least values would be seen here for Python and also Javascript , which suggests that the amount of description needed to explain the questions related to them might be lesser when compared to others , indicating their simplicity or lower complexity for interpretability and understanding.
+
+
+
+
+### Correlation Analysis
+
+```{r reddit_correlation, echo=FALSE,warning=FALSE,message=FALSE , cache=TRUE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+    count_prop <- function(text,word){
+      str_count(text,word)/length(strsplit(text," "))
+    }
+    # adding Ruby, C#, Javascript
+    ld <- rd%>%
+        mutate(text_new = paste(selftext,title,sep=" "))%>%
+        mutate(text_new =  tolower(text_new))%>%
+        mutate(java =count_prop(text_new," java "))%>%
+        mutate(python =count_prop(text_new,"python"))%>%
+        mutate(r =count_prop(text_new," r "))%>%
+        mutate(javascript =count_prop(text_new,"javascript "))%>%
+        mutate(c =(count_prop(text_new," c ")))%>%
+        mutate(cpp = count_prop(text_new,fixed("c++ ")))%>%
+        
+      
+        mutate(ruby =count_prop(text_new," ruby "))%>%
+        mutate(php =count_prop(text_new," php "))
+
+
+```
+One question that arises when looking at the different languages is how they are correlating. Is it for example likely when a certain post is a reddit post is about c, then it might be also about c++?
+To approach this question we can first have a look at the correlation matrix.
+
+```{r corplot_reddit1, echo=FALSE,warning=FALSE,message=FALSE,fig.height=10,fig.width=10}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+library(ggcorrplot)
+cm <- ld %>%
+  select(java,python,r,javascript,c,cpp,ruby,php)
+M <-cm[,-1] 
+x<-cor(M)
+kable(head(x)) %>% 
+  kable_styling(full_width = F)
+```
+
+For the visualization of those results we can use a color coded correlation matrix.
+
+```{r corplot_reddit2, echo=FALSE,warning=FALSE,message=FALSE,fig.height=10,fig.width=10}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+ggcorrplot(cor(M,method = 'pearson') ,hc.order=T,lab = TRUE,type='full')
+#library(corrr)
+``` 
+Now we can cross out all the non-significant correlations in order to check if those correlations are actually statistically sound.
+
+```{r corplot_reddit3, echo=FALSE,warning=FALSE,message=FALSE,fig.height=10,fig.width=10}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+p.mat <- cor_pmat(M)
+ggcorrplot(cor(M,method = 'pearson'), p.mat = p.mat ,hc.order=T,type='full',lab=T)
+
+``` 
+Another way to show the correlation is with a graph-based approach. In this network plot it gets more clear how those different programming languages actually correlate.
+
+```{r corplot_reddit4, echo=FALSE,warning=FALSE,message=FALSE,fig.height=10,fig.width=10}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+library(corrr)
+M%>%correlate(method="pearson")%>%
+  network_plot(min_cor=0,curved=T, colors = c("red", "green"))#+
+  #theme_gray()
+
+```
+
+We can observer here that questions of java and python are closely related. C++ lies somewhere equally correlated to both C and Java. C++ has the syntax , code structure and compilation very similar to C where as the object oriented properties of C++ relate it more closer to Java. We can interpret from this network that ,questions asked on C++ might have close refernces to the syntax of C in their explanations and the object oriented side of it may have a closer relation to OOP concepts used in Java as well. The object based subset approach of Python is very similar to javascript and hence they have lot of similar scenarios when questions are asked. Both of them support writing simple functions and no involvement of class definitions. Ruby is highly unrelated to other languages and even PHP is less related to all of C++ , Java and Python.  
+
+
+## Exploring Stackoverflow Datasets
+
+### Average number of answers for each Programming Language
+
+```{r answercountstkof }
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+YEAR="2019"
+stack_data %>% filter(year == YEAR) %>%
+  group_by(prog) %>%
+  dplyr::summarise(avg = sum(AnswerCount)/n()) %>% ggplot(aes(x=reorder(prog,-avg), fill=prog,y=avg)) + 
+  geom_point(size=3) + 
+  geom_segment(aes(x=prog, 
+                   xend=prog, 
+                   y=0, 
+                   yend=avg)) + 
+  labs(title="Interaction Rate with the Posts", 
+       subtitle="Average Answers Vs Programming Language") +
+       xlab("Average Answers") + ylab("Programming Language") +
+  theme(axis.text.x = element_text(angle=65, vjust=0.6))
+```
+&nbsp;
+Here we try to analyse how often a Post or question is answered on stackoverflow. Its highest for Javascript and Ruby , and then followed by C and Python and then the rest. Stackoverflow seemed to be a much popular platform for questions being answered on C unlike its lower engagement both for questions and comments in Reddit.
+### Analysis of Posts based on Tag Count
+
+```{r postcountbylangstkof}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+library(ggplot2)
+library(tidyverse)
+#Extractinng data from notepad
+# sd<-readRDS("stackoverflow2016-2021.rds")
+
+stack_data %>%
+  mutate(prog = case_when(str_detect(Tags, "<python>") ~ "Python",str_detect(Tags, "<c++>") ~ "C++",str_detect(Tags, "<java>") ~ "Java", str_detect(Tags, "r")~ "R",str_detect(Tags, "<javascript>")~ "Javascript",str_detect(Tags, "<ruby>")~ "Ruby",str_detect(Tags, "<php>")~ "PHP",TRUE ~ Tags)) %>%filter(prog %in% c("Python","C++", "Java", "R","Javascript","Ruby","PHP")) %>%
+  ggplot(aes(x=prog, fill=prog)) + geom_bar(fill="#1C78C0",stat = "count") + xlab("Programming Language") +ylab("Tag Count") + labs(fill = "Programming Language")
+
+```
+
+In stackoverflow we have the advantages of using tags to determine how much a language has been discussed based on their tags. Tags are great features to quickly find out questions and discussion related to respective languages. On Stackoverflow there were more tags of R even more than python , suggesting more questions related to R are asked in stackoverflow , unlike in reddit where the count of R related questions are quite less. Python follows R and Java is also heavily tagged for lot of questions during this period. 
+
+### Analysis of User Views per year for every Programming Language
+
+```{r stackoverflow_viewcount}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+
+stack_data %>% 
+  group_by(year,prog) %>%
+  dplyr::summarise(avg = sum(ViewCount)/n()) %>% ggplot(aes(x = reorder(year,-avg),y = avg)) + geom_bar(stat='identity',fill="#1C78C0") +
+  facet_wrap(~prog,nrow=2) +
+  labs(x = "Year", y = "Average View Count")
+```
+We also analysed how much the already answered/not answered questions , were viewed for different programming langugages. For every language there is a decline in the average view count for the posts , suggesting there might be more unique questions asked in the earlier years and with time similar questions have been asked by different people and they formed a large subset of a very common or similar problems which people would encounter.
+
+### Time Series analysis of Stackoverflow data
+
+```{r stackoverflow_timeseries}
+library(reshape2)
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+ 
+ts<- stack_data %>% filter(year %in% c("2016","2017","2018","2019","2020")) %>% group_by(year,prog) %>%  dplyr::summarise(post = n())
+ts <- data.frame(ts)
+
+ts<-ts[order(ts$year),] 
+count_vec<- function(lang){
+  ts%>%
+  filter(prog == lang) %>% select(post) %>% unlist()
+}
+
+
+python_vec<-count_vec("Python")
+r_vec<-count_vec("R")
+java_vec<- count_vec("Java")
+javascript_vec<- count_vec("JavaScript")
+c_vec<- count_vec("C")
+c_plus_vec<- count_vec("CPP")
+ruby_vec<- count_vec("Ruby")
+php_vec<- count_vec("PHP")
+
+
+data <- data.frame(year =2016:2020,Python=python_vec,R=r_vec,
+                   Java=java_vec,JavaScript=javascript_vec,
+                   C=c_vec,CPP=c_plus_vec,
+                   Ruby=ruby_vec,PHP=php_vec)
+
+data_long <- melt(data, id.vars = "year")    
+
+ggplot(data_long,                           
+       aes(x = year,
+           y = value,col=variable)) +
+  geom_line() +geom_point() + scale_fill_discrete(labels = c("Python", "R", "Java","JavaScript","C","CPP","Ruby","PHP")) +
+  labs(title="Change in Number of Posts by Year", 
+       subtitle="Total Posts per Programming Language vs Year") +
+   xlab("Year") + ylab("Total Posts")
+```
+
+This time series plotting of variation in number of posts during the time period 2016-2020 shows us how the number of posts have increased or decreased across time for all programming languages. No. of Python posts has grown over Javascript and Java after around 2017 and continued to rise until end of 2019. C and C++ posts were pretty low in comparison the top 3 and Ruby also has much lower posts compared to others. There is also a sharp decline in number posts after 2019 and for the entire year of 2020 for almosts all the programming languages.
+
+### Text Length of Posts for every Programming Language
+```{r stackoverflow_textlength}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+# text length analysis
+stack_data$text_new <- paste(stack_data$Title, " ", stack_data$Body)
+tlso=data.frame(stack_data$prog)
+tlso$language <- stack_data$prog
+names<-("language")
+tlso$text_length <- nchar(as.character(stack_data$text_new))
+ggplot(tlso, aes(x=language, y=text_length, color=language)) +
+  geom_boxplot(outlier.shape = NA) +
+  scale_y_continuous(limits = quantile(tlso$text_length, c(0.1, 0.9))) + stat_summary(fun=mean, geom="point", shape=5, size=1)
+
+```
+&nbsp;
+
+Similar to Reddit we also plotted the text length used for different programming languages and in stackoverflow as well we can notice a lower median for Python when compared to others. The highest median text length was in both Java and Javascript in Stackoverflow. 
+
+### Correlation Analysis
+
+We also tried a similar correlation analysis like Reddit for the correlation of the programming languages , or how much a certain programming language was talked about when discussing problems related to a certain programming language. The below plot shows the correlation among different programming languages.
+
+```{r corr_stackoverflow,cache=TRUE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+stack_data <-stack_data[order(stack_data$CreationDate),]
+count_prop <- function(text,word){
+  str_count(text,word)/length(strsplit(text," "))
+}
+# adding Ruby, C#, Javascript
+ld <- stack_data%>%
+  mutate(text_new = paste(Body,Title,sep=" "))%>%
+  mutate(text_new =  tolower(text_new))%>%
+  mutate(java =count_prop(text_new," java "))%>%
+  mutate(python =count_prop(text_new,"python"))%>%
+  mutate(r =count_prop(text_new," r "))%>%
+  mutate(javascript =count_prop(text_new,"javascript "))%>%
+  mutate(c =(count_prop(text_new," c ")))%>%
+  mutate(cpp = count_prop(text_new,fixed("c++ ")))%>%
+  mutate(ruby =count_prop(text_new," ruby "))%>%
+  mutate(php =count_prop(text_new," php "))
+
+library(ggcorrplot)
+cm <- ld %>%
+  select(java,python,r,javascript,c,cpp,ruby,php)
+M <-cm 
+# cor(M)
+
+
+ggcorrplot(cor(M,method = 'pearson') ,hc.order=T,lab = TRUE,type='full')
+
+```
+
+After finding out the correlation we removed the insignificant correlation which were not impactful or below a certain threshold.
+```{r corrmat_stackoverflow}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+library(corrr)
+p.mat <- cor_pmat(M)
+ggcorrplot(cor(M,method = 'pearson'), p.mat = p.mat ,hc.order=T,type='full',lab=T)
+```
+```{r corrnetwork_stackoverflow}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+M%>%correlate(method="pearson")%>%
+  network_plot(min_cor=0,curved=T, colors = c("red", "green"))
+```
+Interestingly the network plot for the correlation in Stackoverflow showed certain similar traits just like Reddit. C++ was almost equally correlated with C and Java which was very much similar like in Reddit. But Python and Java was less related here in comparison to Reddit. R and C was almost similarly related just like Reddit and Ruby was also very less correlated in comparison to others. This adds on top of our observations from Reddit correlation network but does not deviate a lot. 
+
+
+## Topic Modeling - Reddit {.tabset}
+We want to enable topic modeling for each of the programming languages to observe if there are differences in the topics that are relevant for each of the languages. First the date is being preprocessed and a corpus is created. Then a Document Term Matrix is being created and based on this a topic model with a parameter K can be created. To look in general at the preprocessed terms we plot a word cloud for the selected language. The topic model can then be used to look at frequent terms that are used for each topic.
+
+```{r reddit_tm}
+# Function for preprocessing and creating the topic model
+lda_topic_model <- function(redditData,K){
+
+
+  #Create a vector containing only the text
+  led <- redditData
+  text <- led %>% select(text_new)
+  # Create a corpus  
+  docs <- Corpus(VectorSource(text$text_new))
+  docs <- docs %>%
+    tm_map(removeNumbers) %>%
+    tm_map(stripWhitespace) %>%
+    tm_map(removePunctuation)%>%
+    tm_map(removeNumbers)
+  docs <- tm_map(docs, content_transformer(tolower))
+  docs <- tm_map(docs, removeWords, stopwords("english"))
+  memory.limit()
+  gc()
+  tdm <- TermDocumentMatrix(docs)
+  
+  dtm <- DocumentTermMatrix(docs)
+  
+  dtm <- removeSparseTerms(dtm,0.99)
+  
+  sel_idx <- slam::row_sums(dtm) > 0
+  dtm <- dtm[sel_idx, ]
+  
+  
+  matrix <- as.matrix(tdm) 
+  f <- sort(rowSums(matrix),decreasing=TRUE)
+  dat <- data.frame(word = names(f),freq=f)
+
+  message("create LDA model")
+  m = model = LDA(dtm,K)
+  list(dtm = dtm,model = m,dat = dat)
+}
+
+
+# Function for plotting frequent topics
+plot_frequent_topics <- function(ap_topics,n=20){
+  ap_top_terms <- ap_topics %>%
+    group_by(topic) %>%
+    slice_max(beta, n =n) %>% 
+    ungroup() %>%
+    arrange(topic, -beta)
+  
+  ap_top_terms %>%
+    mutate(term = reorder_within(term, beta, topic)) %>%
+    ggplot(aes(beta, term, fill = factor(topic))) +
+    geom_col(show.legend = FALSE) +
+    facet_wrap(~ topic, scales = "free") +
+    scale_y_reordered()
+  
+}
+
+# Function for creating both plots:
+tm_plots <- function(data,language,K=2,sample=0.1,category="reddit"){
+  if(category=="reddit"){
+      df <- data%>%
+          filter(language==language)
+  }else{
+    df <- data%>%
+          filter(prog==language)
+  }
+  
+  df <- df[sample(nrow(df), round(sample*nrow(df))), ]
+  topicModel <- lda_topic_model(df,4)
+  dat <- topicModel$dat
+  wordcloud(words = dat$word, freq = dat$freq,
+            min.freq = 20,
+            max.words=100,random.order=FALSE, rot.per=0.1,
+            colors=brewer.pal(8, "Dark2")
+            )
+  ap_topics <- tidy(topicModel$model, matrix = "beta")
+      plot_frequent_topics(ap_topics,10)
+  
+}
+
+```
+
+### Python
+```{r reddit_tm_python,cache=TRUE}
+tm_plots(lrd,"python",sample=0.1)
+  
+```
+
+### C
+```{r reddit_tm_c,cache=TRUE}
+
+tm_plots(lrd,"c")
+  
+```
+
+### C++
+```{r reddit_tm_cpp,cache=TRUE}
+tm_plots(lrd,"cpp")
+  
+```
+
+
+
+### Java
+```{r reddit_tm_java,cache=TRUE}
+tm_plots(lrd,"java")
+  
+```
+
+### PHP
+```{r reddit_tm_php,cache=TRUE}
+tm_plots(lrd,"PHP")
+  
+```
+
+### Javascript
+```{r reddit_tm_javascript,cache=TRUE}
+tm_plots(lrd,"javascript")
+  
+```
+
+### Ruby
+```{r reddit_tm_ruby,cache=TRUE}
+tm_plots(lrd,"ruby")
+  
+```
+
+### R
+```{r reddit_tm_r,cache=TRUE}
+tm_plots(lrd,"r")
+  
+```
+
+
+
+
+## Topic Modeling - Stackoverflow {.tabset}
+
+### Python
+```{r stack_tm_python,cache=TRUE}
+tm_plots(stack_data,"Python",sample=0.1,category = "stack")
+```
+
+### C
+```{r stack_tm_c,cache=TRUE}
+tm_plots(stack_data,"C",sample=0.1,category = "stack")
+  
+```
+
+### C++
+```{r stack_tm_cpp,cache=TRUE}
+tm_plots(stack_data,"CPP",sample=0.1,category = "stack")
+  
+```
+
+
+
+### Java
+```{r stack_tm_java,cache=TRUE}
+tm_plots(stack_data,"Java",sample=0.1,category = "stack")
+  
+```
+
+### PHP
+```{r stack_tm_php,cache=TRUE}
+tm_plots(stack_data,"PHP",sample=0.1,category = "stack")
+  
+```
+
+### Javascript
+```{r stack_tm_javascript,cache=TRUE}
+tm_plots(stack_data,"JavaScript",sample=0.1,category = "stack")
+  
+```
+
+### Ruby
+```{r stack_tm_ruby,cache=TRUE}
+tm_plots(stack_data,"Ruby",sample=0.1,category = "stack")
+  
+```
+
+### R
+```{r stack_tm_r,cache=TRUE}
+tm_plots(stack_data,"R",sample=0.1,category = "stack")
+  
+```
+
+
+
+## Forcasting - Reddit {.tabset}
+
+For the purpose of understanding how these trends would look like in future we also performed forecasting using the ARIMA model to predict using the existing time series data. ARIMA is a statistical model suited for forecasting time series data. We convert our data to time series data here for the period between 2016 and 2020 and then predict for the next 24 months to understand how the popularity would vary in future on both the platforms. This would give us an idea how the programming language might be used by the users in comparison to other programming languages we have chosen for our study. For our forecasting we have focused on using the 
+
+### Python
+```{r reddit_forecasting_python}
+
+lrd$date <- format(as.Date(as.POSIXct(lrd$created_utc, origin="1970-01-01")), "%Y-%m")
+
+r<- lrd %>% group_by(date,language) %>%  dplyr::summarise(post = n())
+k<- lrd %>% group_by(date) %>%  dplyr::summarise(total_post = n())
+total <- merge(r,k,by="date") %>%  mutate(fraction = round(post/total_post, 2))
+py <- filter(total,language == "python")
+py <- ts(py$fraction, frequency = 12, start = c(2016, 1), end=c(2020, 1))
+window(py, end=2020) %>%
+  Arima(c(1,2,2)) %>%
+  forecast(h=24) %>%
+  autoplot()
+```
+### C
+```{r reddit_forecasting_c}
+
+lrd$date <- format(as.Date(as.POSIXct(lrd$created_utc, origin="1970-01-01")), "%Y-%m")
+
+r<- lrd %>% group_by(date,language) %>%  dplyr::summarise(post = n())
+k<- lrd %>% group_by(date) %>%  dplyr::summarise(total_post = n())
+total <- merge(r,k,by="date") %>%  mutate(fraction = round(post/total_post, 2))
+py <- filter(total,language == "c")
+py <- ts(py$fraction, frequency = 12, start = c(2016, 1), end=c(2020, 1))
+window(py, end=2020) %>%
+  Arima(c(1,2,2)) %>%
+  forecast(h=24) %>%
+  autoplot()
+```
+
+### C++
+```{r reddit_forecasting_cpp}
+
+lrd$date <- format(as.Date(as.POSIXct(lrd$created_utc, origin="1970-01-01")), "%Y-%m")
+
+r<- lrd %>% group_by(date,language) %>%  dplyr::summarise(post = n())
+k<- lrd %>% group_by(date) %>%  dplyr::summarise(total_post = n())
+total <- merge(r,k,by="date") %>%  mutate(fraction = round(post/total_post, 2))
+py <- filter(total,language == "cpp")
+py <- ts(py$fraction, frequency = 12, start = c(2016, 1), end=c(2020, 1))
+window(py, end=2020) %>%
+  Arima(c(1,2,2)) %>%
+  forecast(h=24) %>%
+  autoplot()
+```
+
+### Java
+```{r reddit_forecasting_java}
+
+lrd$date <- format(as.Date(as.POSIXct(lrd$created_utc, origin="1970-01-01")), "%Y-%m")
+
+r<- lrd %>% group_by(date,language) %>%  dplyr::summarise(post = n())
+k<- lrd %>% group_by(date) %>%  dplyr::summarise(total_post = n())
+total <- merge(r,k,by="date") %>%  mutate(fraction = round(post/total_post, 2))
+py <- filter(total,language == "java")
+py <- ts(py$fraction, frequency = 12, start = c(2016, 1), end=c(2020, 1))
+window(py, end=2020) %>%
+  Arima(c(1,2,2)) %>%
+  forecast(h=24) %>%
+  autoplot()
+```
+
+### PHP
+```{r reddit_forecasting_php}
+
+lrd$date <- format(as.Date(as.POSIXct(lrd$created_utc, origin="1970-01-01")), "%Y-%m")
+
+r<- lrd %>% group_by(date,language) %>%  dplyr::summarise(post = n())
+k<- lrd %>% group_by(date) %>%  dplyr::summarise(total_post = n())
+total <- merge(r,k,by="date") %>%  mutate(fraction = round(post/total_post, 2))
+py <- filter(total,language == "php")
+py <- ts(py$fraction, frequency = 12, start = c(2016, 1), end=c(2020, 1))
+window(py, end=2020) %>%
+  Arima(c(1,2,2)) %>%
+  forecast(h=24) %>%
+  autoplot()
+```
+
+### Javascript
+```{r reddit_forecasting_javascript}
+
+lrd$date <- format(as.Date(as.POSIXct(lrd$created_utc, origin="1970-01-01")), "%Y-%m")
+
+r<- lrd %>% group_by(date,language) %>%  dplyr::summarise(post = n())
+k<- lrd %>% group_by(date) %>%  dplyr::summarise(total_post = n())
+total <- merge(r,k,by="date") %>%  mutate(fraction = round(post/total_post, 2))
+py <- filter(total,language == "javascript")
+py <- ts(py$fraction, frequency = 12, start = c(2016, 1), end=c(2020, 1))
+window(py, end=2020) %>%
+  Arima(c(1,2,2)) %>%
+  forecast(h=24) %>%
+  autoplot()
+```
+
+### Ruby
+```{r reddit_forecasting_ruby}
+
+lrd$date <- format(as.Date(as.POSIXct(lrd$created_utc, origin="1970-01-01")), "%Y-%m")
+
+r<- lrd %>% group_by(date,language) %>%  dplyr::summarise(post = n())
+k<- lrd %>% group_by(date) %>%  dplyr::summarise(total_post = n())
+total <- merge(r,k,by="date") %>%  mutate(fraction = round(post/total_post, 2))
+py <- filter(total,language == "ruby")
+py <- ts(py$fraction, frequency = 12, start = c(2016, 1), end=c(2020, 1))
+window(py, end=2020) %>%
+  Arima(c(1,2,2)) %>%
+  forecast(h=24) %>%
+  autoplot()
+```
+##
+
+A simple analysis from the forecasting shows that popularity or usage of Python , PHP and Ruby would mostly rise in the next 2 years given how it will be explored in the Reddit platform. However discussions on C, C++ , Java and Javascript might significantly reduce in Reddit and it might not be a great platform to post or discuss questions related to these programming languages.
+
+## Forcasting - StackOverflow {.tabset}
+
+### Python 
+```{r stackoverflow_forecasting_python}
+stack_data$date <- format(as.Date(as.POSIXct(stack_data$CreationDate, origin="1970-01-01")), "%Y-%m")
+r<- stack_data %>% group_by(date,prog) %>%  dplyr::summarise(post = n())
+k<- stack_data %>% group_by(date) %>%  dplyr::summarise(total_post = n())
+total <- merge(r,k,by="date") %>%  mutate(fraction = round(post/total_post, 2))
+py <- filter(total,prog == "Python")
+py <- ts(py$fraction, frequency = 12, start = c(2016, 1), end=c(2020, 1))
+window(py, end=2020) %>%
+  Arima(c(1,2,2)) %>%
+  forecast(h=24) %>%
+  autoplot()
+
+```
+
+### C
+```{r stackoverflow_forecasting_C}
+stack_data$date <- format(as.Date(as.POSIXct(stack_data$CreationDate, origin="1970-01-01")), "%Y-%m")
+r<- stack_data %>% group_by(date,prog) %>%  dplyr::summarise(post = n())
+k<- stack_data %>% group_by(date) %>%  dplyr::summarise(total_post = n())
+total <- merge(r,k,by="date") %>%  mutate(fraction = round(post/total_post, 2))
+py <- filter(total,prog == "C")
+py <- ts(py$fraction, frequency = 12, start = c(2016, 1), end=c(2020, 1))
+window(py, end=2020) %>%
+  Arima(c(1,2,2)) %>%
+  forecast(h=24) %>%
+  autoplot()
+
+```
+
+### CPP
+```{r stackoverflow_forecasting_cpp}
+stack_data$date <- format(as.Date(as.POSIXct(stack_data$CreationDate, origin="1970-01-01")), "%Y-%m")
+r<- stack_data %>% group_by(date,prog) %>%  dplyr::summarise(post = n())
+k<- stack_data %>% group_by(date) %>%  dplyr::summarise(total_post = n())
+total <- merge(r,k,by="date") %>%  mutate(fraction = round(post/total_post, 2))
+py <- filter(total,prog == "CPP")
+py <- ts(py$fraction, frequency = 12, start = c(2016, 1), end=c(2020, 1))
+window(py, end=2020) %>%
+  Arima(c(1,2,2)) %>%
+  forecast(h=24) %>%
+  autoplot()
+
+```
+
+### Java
+```{r stackoverflow_forecasting_java}
+stack_data$date <- format(as.Date(as.POSIXct(stack_data$CreationDate, origin="1970-01-01")), "%Y-%m")
+r<- stack_data %>% group_by(date,prog) %>%  dplyr::summarise(post = n())
+k<- stack_data %>% group_by(date) %>%  dplyr::summarise(total_post = n())
+total <- merge(r,k,by="date") %>%  mutate(fraction = round(post/total_post, 2))
+py <- filter(total,prog == "Java")
+py <- ts(py$fraction, frequency = 12, start = c(2016, 1), end=c(2020, 1))
+window(py, end=2020) %>%
+  Arima(c(1,2,2)) %>%
+  forecast(h=24) %>%
+  autoplot()
+
+```
+
+### PHP
+```{r stackoverflow_forecasting_php}
+stack_data$date <- format(as.Date(as.POSIXct(stack_data$CreationDate, origin="1970-01-01")), "%Y-%m")
+r<- stack_data %>% group_by(date,prog) %>%  dplyr::summarise(post = n())
+k<- stack_data %>% group_by(date) %>%  dplyr::summarise(total_post = n())
+total <- merge(r,k,by="date") %>%  mutate(fraction = round(post/total_post, 2))
+py <- filter(total,prog == "PHP")
+py <- ts(py$fraction, frequency = 12, start = c(2016, 1), end=c(2020, 1))
+window(py, end=2020) %>%
+  Arima(c(1,2,2)) %>%
+  forecast(h=24) %>%
+  autoplot()
+
+```
+
+### Javascript
+```{r stackoverflow_forecasting_javascript}
+stack_data$date <- format(as.Date(as.POSIXct(stack_data$CreationDate, origin="1970-01-01")), "%Y-%m")
+r<- stack_data %>% group_by(date,prog) %>%  dplyr::summarise(post = n())
+k<- stack_data %>% group_by(date) %>%  dplyr::summarise(total_post = n())
+total <- merge(r,k,by="date") %>%  mutate(fraction = round(post/total_post, 2))
+py <- filter(total,prog == "JavaScript")
+py <- ts(py$fraction, frequency = 12, start = c(2016, 1), end=c(2020, 1))
+window(py, end=2020) %>%
+  Arima(c(1,2,2)) %>%
+  forecast(h=24) %>%
+  autoplot()
+
+```
+
+### Ruby
+```{r stackoverflow_forecasting_ruby}
+stack_data$date <- format(as.Date(as.POSIXct(stack_data$CreationDate, origin="1970-01-01")), "%Y-%m")
+r<- stack_data %>% group_by(date,prog) %>%  dplyr::summarise(post = n())
+k<- stack_data %>% group_by(date) %>%  dplyr::summarise(total_post = n())
+total <- merge(r,k,by="date") %>%  mutate(fraction = round(post/total_post, 2))
+py <- filter(total,prog == "Ruby")
+py <- ts(py$fraction, frequency = 12, start = c(2016, 1), end=c(2020, 1))
+window(py, end=2020) %>%
+  Arima(c(1,2,2)) %>%
+  forecast(h=24) %>%
+  autoplot()
+
+```
+
+## 
+In Stackoverflow we see the forecasting suggests , Python and C would definitely remain popular and in fact gain more discussions in the future. There might be a sharp decrease in popularity of PHP in the stackoverflow platform, and for other languages like C++, Ruby , Java and Javascript there might be a slight fall in the popularity as well.
+
+# Final Analysis
+
+Based on the predictive analysis of the target programming languages, we can conclude that Python is steadily continuing to gain popularity on both reddit and stackoverflow platforms. Whether we compare data from Reddit or Stackoverflow , Python emerges as the most popular overall when count of post is considered .Based on comment count C is more popular in reddit as well as in stackoverflow. C++ and Java both have less reachout in Reddit as compared to Stackoverflow. It was also interesting to note that the correlations in the programming language was not much different for both the platforms.
+
+
+
