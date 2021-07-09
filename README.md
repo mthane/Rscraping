@@ -20,3 +20,5 @@ Screencast : [Youtube](https://www.youtube.com/watch?v=0_W7ekFKxPA)
 
 R Markdown Process Notebook :[R Markdown Notebook](https://github.com/mthane/Rscraping/blob/master/Final-Process-Notebook.html)
 
+Presentation Slides : [R presentation](https://rpubs.com/mthane93/TPLP)
+
